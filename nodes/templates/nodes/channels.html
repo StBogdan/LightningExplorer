@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<title>Lightning Monitor</title>
+{% load static %}
+<script src="{% static "nodes/jsUtils.js" %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+</head>
+
+<body>
+{% include "nodes/navbar.html" %}
+
+
+<table class="table table-striped table-sm">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Capacity</th>
+      <th scope="col">Node 1 PubKey</th>
+      <th scope="col">Node 2 PubKey</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for channel in channels %}
+    <tr>
+      <th scope="row"> <a href="/channels/{{ channel.channel_id  }}">{{ channel.channel_id }} </a></th>
+      <td>{{ channel.capacity }}</td>
+      <td> <a href="/nodes/{{ channel.node1_pub  }}">{{ channel.node1_pub }}</a></td>
+      <td> <a href="/nodes/{{ channel.node2_pub  }}">{{ channel.node2_pub }}</a></td>
+      <td> <a href="https://live.blockcypher.com/btc-testnet/tx/{{ channel.chan_point }}">{{ channel.chan_point }}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+<!-- Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+</body>
+</html>
