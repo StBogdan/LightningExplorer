@@ -3,11 +3,13 @@ from django.views import generic
 from django.http import HttpResponse
 
 import json
+import codecs
 import urllib.request
 
 def obtainNetworkData():
         fileName= "testGraph.json"
-        readData = json.loads(open(fileName).read())
+        enc='utf-8'
+        readData = json.loads(codecs.open(fileName, 'r', enc).read())
         return readData
 
 def obtainedCachedPoz():
