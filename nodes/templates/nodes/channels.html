@@ -20,6 +20,7 @@
       <th scope="col">Capacity</th>
       <th scope="col">Node 1 PubKey</th>
       <th scope="col">Node 2 PubKey</th>
+      <th scope="col">Channel Point</th>
     </tr>
   </thead>
   <tbody>
@@ -29,7 +30,8 @@
       <td>{{ channel.capacity }}</td>
       <td> <a href="/nodes/{{ channel.node1_pub  }}">{{ channel.node1_pub }}</a></td>
       <td> <a href="/nodes/{{ channel.node2_pub  }}">{{ channel.node2_pub }}</a></td>
-      <td> <a href="https://live.blockcypher.com/btc-testnet/tx/{{ channel.chan_point }}">{{ channel.chan_point }}</a></td>
+      <!-- <a href="https://live.blockcypher.com/btc-testnet/tx/{{ channel.chan_point }}"> </a> -->
+      <td> {{ channel.chan_point }}</td>
     </tr>
     {% endfor %}
   </tbody>

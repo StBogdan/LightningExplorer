@@ -18,6 +18,7 @@
   .box {
     display: flex;
     flex-flow: column;
+    width:100%;
     height: 50%;
   }
 </style>
@@ -84,15 +85,20 @@
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
       <h6 class="card-subtitle mb-2 text-muted">PubKey: {{ nodeInfo.pub_key}}</h6>
       <p class="card-text"> <p> Color {{ nodeInfo.color }}</p>
-        <p> Addresses {{ nodeInfo.addresses }}</p>
+        <p> Advertised addresses:</p>
+        <ul>
+        {% for address in nodeInfo.addresses %}
+        <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
+        {% endfor %}
+        </ul>
     </div>
   </div>
 
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">ID</th>
-            <th scope="col">To</th>
+            <th scope="col">Channel ID</th>
+            <th scope="col">Connected To Pubkey</th>
             <th scope="col">Capacity</th>
             <th scope="col">Channel Point</th>
           </tr>

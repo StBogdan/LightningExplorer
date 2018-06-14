@@ -30,13 +30,13 @@ function populateGraph (nodeData,edgeData, locationList = {}){
       }
 
       addNode(current.pub_key,current.alias,current.color,x,y);
-      console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
+      // console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
   }
   console.log("Adding edges :" + edgeData.length);
   for( var i=0; i< edgeData.length; i++){
       var current = edgeData[i];
       addEdge(current.channel_id,current.node1_pub,current.node2_pub,current.capacity/10**3);
-        console.log("Now edge :" + i + "\t "+ current.channel_id );
+      // console.log("Now edge :" + i + "\t "+ current.channel_id );
   }
 }
 

@@ -7,7 +7,7 @@ import codecs
 import urllib.request
 
 def obtainNetworkData():
-        fileName= "testGraph.json"
+        fileName= "newGraph.json"
         enc='utf-8'
         readData = json.loads(codecs.open(fileName, 'r', enc).read())
         return readData

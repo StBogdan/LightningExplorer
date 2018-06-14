@@ -18,6 +18,7 @@
   .box {
     display: flex;
     flex-flow: column;
+    width:100%;
     height: 50%;
   }
 </style>
@@ -25,8 +26,6 @@
 
 <body>
 {% include "nodes/navbar.html" %}
-
-
 
     <div class="box" id="mynetwork">
       {# <div  class="row content"></div> #}
@@ -86,9 +85,9 @@
       <h5 class="card-title">Chan ID: {{ edgeInfo.channel_id }}</h5>
       <h6 class="card-subtitle mb-2 text-muted">Capacity: {{ edgeInfo.capacity }} SAT</h6>
       <p class="card-text">
-       <p> Node 1 {{ edgeInfo.node1_pub }}</p>
-        <p> Node 2 {{ edgeInfo.node2_pub }} </p>
-        <p> Channel Point {{ edgeInfo.chan_point }} </p>
+       <p>Node 1 {{ edgeInfo.node1_pub }}</p>
+        <p>Node 2 {{ edgeInfo.node2_pub }} </p>
+        <p>Channel Point {{ edgeInfo.chan_point }} </p>
     </div>
   </div>
 
@@ -96,10 +95,14 @@
     <div class="card" style="width: 100%;">
       <div class="card-body">
         <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">PubKey: {{ nodeInfo.pub_key}}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
         <p class="card-text"> <p> Color {{ nodeInfo.color }}</p>
-          <p> Addresses {{ nodeInfo.addresses }}</p>
-        <a href="/nodes/{{ nodeInfo.pub_key }}" class="card-link">Full node info</a>
+          <p> Advertised addresses:</p>
+          <ul>
+          {% for address in nodeInfo.addresses %}
+          <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
+          {% endfor %}
+          </ul>
       </div>
     </div>
 {% endfor %}

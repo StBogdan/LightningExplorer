@@ -19,7 +19,7 @@ network.on("click", function (params) {
       }
       else{
         inspectMe3 = params;
-        console.log("double click params: "+ params);
+        // console.log("double click params: "+ params);
 
         if(params["edges"].length > 0){
           console.log("Double Clicked on edge/channel: " + params["edges"][0] );
