@@ -19,7 +19,8 @@
   .box {
     display: flex;
     flex-flow: column;
-    height: 100%;
+    overflow: hidden;
+    height: 94%;
   }
 </style>
 
@@ -29,8 +30,7 @@
 <body>
 {% include "nodes/navbar.html" %}
 
-<div class="box" id="mynetwork">
-</div>
+<div class="box" id="mynetwork"> </div>
 
 <script type="text/javascript">
   // create an array with nodes
@@ -40,9 +40,10 @@
 
   //Get network data
   var networkData = {{ jsonData | safe }} ;
+  var networkPoz = {{ cachedPoz | safe }} ;
 
   // create an array with edges
-  populateGraph(networkData.nodes,networkData.edges);
+  populateGraph(networkData.nodes,networkData.edges,networkPoz);
 
   // create a network
   var container = document.getElementById('mynetwork');

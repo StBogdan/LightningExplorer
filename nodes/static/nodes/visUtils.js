@@ -1,9 +1,9 @@
 
 
 //Vis.js population adding code
-function addNode(nID,nLabel,nColor = '#7BE141' ) {
+function addNode(nID,nLabel,nColor = '#7BE141', pozX=0, pozY=0) {
 try {
-    nodes.add({ id: nID, label: nLabel , color: nColor, shape: 'dot', font: { size:40,  strokeWidth:5, strokeColor:'#ffffff'}});
+    nodes.add({ id: nID, label: nLabel , x: pozX, y:pozY, color: nColor, shape: 'dot', font: { size:40,  strokeWidth:5, strokeColor:'#ffffff'}});
   }
 catch (err) {
   alert(err);
@@ -18,20 +18,25 @@ function addEdge(nID,nTo,nFrom, nValue =1) {
        alert(err);
    }
 }
-
-
-function populateGraph (nodeData,edgeData){
+function populateGraph (nodeData,edgeData, locationList){
   console.log("Adding nodes :" + nodeData.length);
   for( var i=0; i< nodeData.length; i++){
       var current = nodeData[i];
-      addNode(current.pub_key,current.alias,current.color);
-        console.log("Now node :" + i);
+      var x =0;
+      var y= 0;
+      if ( current.pub_key in locationList){  //Use cached coords in possible
+        x= locationList[current.pub_key]["x"];
+        y= locationList[current.pub_key]["y"];
+      }
+
+      addNode(current.pub_key,current.alias,current.color,x,y);
+      console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
   }
   console.log("Adding edges :" + edgeData.length);
   for( var i=0; i< edgeData.length; i++){
       var current = edgeData[i];
       addEdge(current.channel_id,current.node1_pub,current.node2_pub,current.capacity/10**3);
-        console.log("Now edge :" + i);
+        console.log("Now edge :" + i + "\t "+ current.channel_id );
   }
 }
 

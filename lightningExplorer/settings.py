@@ -76,14 +76,24 @@ WSGI_APPLICATION = 'lightningExplorer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+
+# DATABASES = {
+#      'default': {
+#          'ENGINE': 'django.db.backends.sqlite3',
+#          'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#      }
+#  }
+
+db_user = open('/etc/django_user.txt').read().strip()
+db_pass = open('/etc/django_pass.txt').read().strip()
 DATABASES = {
-       'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'lightningexplorer',
-        'USER': 'monitoruser',
-        'PASSWORD': 'memeReview2k15',
-        'HOST': 'localhost',
-        'PORT': '',}
+      'default': {
+       'ENGINE': 'django.db.backends.postgresql_psycopg2',
+       'NAME': 'lightningexplorer',
+       'USER':     db_user,
+       'PASSWORD': db_pass,
+       'HOST': 'localhost',
+       'PORT': '',}
 }
 
 
@@ -122,9 +132,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-#STATICFILES_DIRS = (
-#    os.path.join(BASE_DIR, "static"),
-#)
+STATICFILES_DIRS = (
+   os.path.join(BASE_DIR, "static"),
+)
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files/')

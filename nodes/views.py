@@ -10,16 +10,22 @@ def obtainNetworkData():
         readData = json.loads(open(fileName).read())
         return readData
 
+def obtainedCachedPoz():
+        fileName= "cachedLocations.json"
+        readData = json.loads(open(fileName).read())
+        return readData
+
 # Create your views here.
 def index(request):
     testJSON = obtainNetworkData()
+    nodePoz = obtainedCachedPoz()
 
     # testJSON =' { "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } }'
     print(str(len(testJSON["nodes"]))+ " with edges " + str(len(testJSON["edges"])))
 
     [testJSON,unconnectedNodes] = filterNodes(testJSON)
 
-    return render(request, 'nodes/index.html', {"jsonData" : json.dumps(testJSON) , "unconnectedNodes" : unconnectedNodes })
+    return render(request, 'nodes/index.html', {"jsonData" : json.dumps(testJSON) , "unconnectedNodes" : unconnectedNodes , "cachedPoz": json.dumps(nodePoz) })
 
 
 def nodes(request):
