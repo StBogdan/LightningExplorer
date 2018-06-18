@@ -23,9 +23,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 with open('/etc/secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
-
+#TODO Learn to do this better
+debug_setting = open('/etc/django_debug.txt').read().strip() == "True"
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  False
+DEBUG =  debug_setting
 
 ALLOWED_HOSTS = [".lndmon.com", "127.0.0.1", "localhost"]
 
@@ -76,7 +77,7 @@ WSGI_APPLICATION = 'lightningExplorer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-
+#Development
 # DATABASES = {
 #      'default': {
 #          'ENGINE': 'django.db.backends.sqlite3',
@@ -84,6 +85,7 @@ WSGI_APPLICATION = 'lightningExplorer.wsgi.application'
 #      }
 #  }
 
+#Production
 db_user = open('/etc/django_user.txt').read().strip()
 db_pass = open('/etc/django_pass.txt').read().strip()
 DATABASES = {
@@ -135,6 +137,9 @@ USE_TZ = True
 STATICFILES_DIRS = (
    os.path.join(BASE_DIR, "static"),
 )
+
+MEDIA_URL = '/media_files/'
+MEDIA_ROOT = os.path.join(BASE_DIR,"media/")
 
 STATIC_URL = '/static_files/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_files/')

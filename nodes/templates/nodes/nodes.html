@@ -4,6 +4,7 @@
 <title>Lightning Monitor</title>
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
+<link rel="stylesheet" href="{% static "nodes/lndmon.css" %}"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
@@ -25,10 +26,10 @@
       <tbody>
         {% for currentNode in unconnectedNodes %}
         <tr>
-          <th scope="row"> <a href="/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
-          <td>{{ currentNode.alias }}</td>
-          <td>{{ currentNode.color }}</td>
-          <td>{{ currentNode.address }}</td>
+          <th scope="row" class="td-small"> <a href="/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
+          <td class="td-normal">{{ currentNode.alias }}</td>
+          <td class="td-small">{{ currentNode.color }}</td>
+          <td class="td-small">{{ currentNode.addresses }}</td>
         </tr>
         {% endfor %}
       </tbody>
