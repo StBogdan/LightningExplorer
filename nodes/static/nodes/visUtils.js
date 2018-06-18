@@ -35,7 +35,7 @@ function populateGraph (nodeData,edgeData, locationList = {}){
   console.log("Adding edges :" + edgeData.length);
   for( var i=0; i< edgeData.length; i++){
       var current = edgeData[i];
-      addEdge(current.channel_id,current.node1_pub,current.node2_pub,current.capacity/10**3);
+      addEdge(current.channel_id,current.node2_pub,current.node1_pub,current.capacity/10**2);
       // console.log("Now edge :" + i + "\t "+ current.channel_id );
   }
 }

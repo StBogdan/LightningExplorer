@@ -1,0 +1,28 @@
+html,
+body {
+  height: 100%;
+  margin: 0
+}
+
+.box {
+  display: flex;
+  flex-flow: column;
+  width:100%;
+  height: 50%;
+}
+
+tr,td {
+  white-space: normal !important;
+  word-wrap: break-word;
+  text-align: center;
+}
+table {
+  table-layout: fixed;
+}
+
+.td-small{
+  font-size: 0.75em;
+}
+.td-normal{
+  font-size: 0.9em;
+}

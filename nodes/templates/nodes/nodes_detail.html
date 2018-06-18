@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Lightning Monitor</title>
+{% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
 <script src="{% static "nodes/visUtils.js" %}"></script>
@@ -85,7 +86,8 @@
   <thead>
     <tr>
       <th scope="col">Channel ID</th>
-      <th scope="col">Connected To Pubkey</th>
+      <th scope="col">Connected To</th>
+      <th scope="col">Connected From</th>
       <th scope="col">Capacity</th>
       <th scope="col">Channel Point</th>
     </tr>
@@ -94,7 +96,8 @@
     {% for edge in edges %}
     <tr>
       <th scope="row" class= "td-normal"> <a href="/channels/{{ edge.channel_id }}">{{ edge.channel_id}} </a></th>
-      <td class= "td-small">{{ edge.node1_pub }}</td>
+      <td class= "td-small"> <a href="/nodes/{{ edge.node1_pub }}">{{ edge.node1_pub }} </a> </td>
+      <td class= "td-small"> <a href="/nodes/{{ edge.node2_pub }}">{{ edge.node2_pub }} </a> </td>
       <td class= "td-normal">{{ edge.capacity}} SAT</td>
       <td class= "td-small">{{ edge.chan_point}}</td>
     </tr>

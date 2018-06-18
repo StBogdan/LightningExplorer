@@ -60,8 +60,7 @@ def channels(request):
 def metrics(request):
         if(len(Metric.objects.all()) == 0):
             figuresFolder = "media"
-            figuresURL = "media_files"
-            db_put_metrics(os.listdir(figuresFolder),figuresURL)
+            db_put_metrics(os.listdir(figuresFolder),figuresFolder)
         return render(request, 'nodes/metrics.html', {"figures" : Metric.objects.all() })
 
 def db_put_metrics(files,fileURL):
