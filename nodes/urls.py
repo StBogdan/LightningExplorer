@@ -10,6 +10,7 @@ urlpatterns = [
     path('nodes', views.nodes, name='nodes'),
     path('channels', views.channels, name='channels'),
     path('metrics', views.metrics, name='metrics'),
+    path('search', views.search, name='search'),
     path('nodes/<slug:nodeID>', views.nodes_detail, name='node-detail'),
     path('channels/<slug:chanID>', views.channels_detail, name='channel-detail'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -153,7 +153,6 @@ def filterNodes(networkGraph):
         if(not networkGraph["nodes"][i]["pub_key"] in nodesWithEdges):
             unconnectedNodes.append(networkGraph["nodes"][i])
             networkGraph["nodes"].remove(networkGraph["nodes"][i])
-
         else:
             i+=1
     return [networkGraph,unconnectedNodes]
@@ -164,3 +163,20 @@ def getNodeEdges(networkGraph, nodeID):
     vecinNodesDetails = [ node for node in networkGraph["nodes"] if node["pub_key"] in vecinNodesIDs]
     connectedEdges = [edge for edge in networkGraph["edges"] if edge["node2_pub"] == nodeID  or  edge["node1_pub"] == nodeID]
     return [vecinNodesDetails,connectedEdges]
+
+def search(request):
+    if request.method == 'GET':
+        data = obtainNetworkData()
+        raw_search_term =  request.GET['search_term'] #Note that django does automatic html characted sanitising
+        possibleMatchesNodes = [x for x in data["nodes"] if raw_search_term in x["pub_key"]] +  [x for x in data["nodes"] if raw_search_term in x["alias"]]
+
+        possibleMatchesEdges =  [x for x in data["edges"] if (raw_search_term in x["channel_id"]) or (raw_search_term in x["chan_point"]) ]
+
+        return render(request, 'nodes/search.html', {"searchInfo": raw_search_term,  "foundNodes" : possibleMatchesNodes, "foundChannels": possibleMatchesEdges, "nrResults": len(possibleMatchesNodes)+ len(possibleMatchesEdges)})
+    else:
+        index(request)
+
+    #         status = Nodes.objects.filter(node__icontains=node) # filter returns a list so you might consider skip except part
+    #         return render(request,"search.html",{"node":status})
+    # else:
+    #         return render(request,"search.html",{})

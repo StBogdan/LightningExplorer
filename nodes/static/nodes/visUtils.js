@@ -40,6 +40,11 @@ function populateGraph (nodeData,edgeData, locationList = {}){
   }
 }
 
+function addLabels(edgeSet,edgeData){
+  for(var i=0; i< edgeData.length;i++){
+      edgeSet.update([{id: edgeData[i]["channel_id"], label: edgeData[i]["capacity"] + " SAT" }]);
+    }
+}
 
 
 //Copied the default values

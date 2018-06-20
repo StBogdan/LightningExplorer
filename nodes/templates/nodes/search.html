@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<title>Lightning Monitor</title>
+{% include "nodes/analytics.html" %}
+{% load static %}
+<script src="{% static "nodes/jsUtils.js" %}"></script>
+<link rel="stylesheet" href="{% static "nodes/lndmon.css" %}"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+</head>
+
+
+<body>
+{% include "nodes/navbar.html" %}
+<div class="alert alert-primary mx-auto text-center" role="alert" style="width: 75%;">
+  Showing search results for: "{{searchInfo}}" <br>
+  Showing all of {{nrResults}}
+</div>
+
+<div class="container" style="width: 90%;">
+<h2> Nodes </h2>
+{% for nodeInfo in foundNodes %}
+<div class="card mx-auto" >
+  <div class="card-body">
+    <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
+    <h6 class="card-subtitle mb-2 text-muted"> Color {{ nodeInfo.color }} </h6>
+    <p class="card-text">
+      <p> Advertised addresses:</p>
+      <ul>
+      {% for address in nodeInfo.addresses %}
+      <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
+      {% endfor %}
+      </ul>
+    </p>
+  </div>
+</div>
+{% empty %}
+  <div class="alert alert-warning mx-auto text-center" role="alert" style="width: 75bn%;">
+    No matching nodes found
+  </div>
+{% endfor %}
+</div>
+
+
+<div class="container" style="width: 90%;">
+<h2> Channels </h2>
+{% for chanInfo in foundChannels %}
+<div class="card mx-auto">
+  <div class="card-body">
+    <h5 class="card-title">Channel ID: <a href="/channels/{{ chanInfo.channel_id }}"> {{ chanInfo.channel_id }} </a> </h5>
+    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ chanInfo.node1_pub }}">  {{ chanInfo.node1_pub}}</a> </h6>
+    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ chanInfo.node2_pub }}">  {{ chanInfo.node2_pub}}</a> </h6>
+    <h6 class="card-subtitle mb-2 text-muted"> Capacity: {{ chanInfo.capacity}} SAT </h6>
+
+  </div>
+</div>
+
+{% empty %}
+  <div class="alert alert-warning mx-auto text-center" role="alert" style="width: 75bn%;">
+    No matching channels found
+  </div>
+{% endfor %}
+
+
+</div>
+
+<!-- Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+</body>
+</html>
