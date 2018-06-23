@@ -12,6 +12,10 @@ def obtainNetworkData():
         fileName= "newGraph.json"
         enc='utf-8'
         readData = json.loads(codecs.open(fileName, 'r', enc).read())
+        # readData={}
+        # readData["nodes"] = [var(x) for x in Node.objects.filter(datetime_published__day='21')]
+        # readData["edges"] = [var(x) for x in Channel.objects.filter(datetime_published__day='21')]
+
         return readData
 
 def obtainedCachedPoz():
@@ -37,17 +41,13 @@ def nodes(request):
 
         # testJSON =' { "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } }'
         print(str(len(testJSON["nodes"]))+ " with edges " + str(len(testJSON["edges"])))
-
         [testJSON,unconnectedNodes] = filterNodes(testJSON)
-
         return render(request, 'nodes/nodes.html', {"unconnectedNodes" : unconnectedNodes })
 
 
 def nodes_detail(request, nodeID):
         testJSON = obtainNetworkData()
-
         [nodes,edges] = getNodeEdges(testJSON,nodeID)
-
         return render(request, 'nodes/nodes_detail.html', {"nodes" : nodes, "edges" : edges, "nodeInfo" : getPubKeyInfo(nodeID)})
 
 
