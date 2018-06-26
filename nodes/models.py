@@ -38,12 +38,13 @@ class Channel(models.Model):
     #Last_update
     last_update = models.IntegerField()     # Last_update (Unix timestamp)
 
-    node1 =  models.ForeignKey('Node', null=True, on_delete=models.SET_NULL, related_name='node1')
-    node2 =  models.ForeignKey('Node', null=True, on_delete=models.SET_NULL, related_name='node2')
+    node1_pub =  models.ForeignKey('Node', null=True, on_delete=models.SET_NULL, related_name='node1_pub')
+    node2_pub =  models.ForeignKey('Node', null=True, on_delete=models.SET_NULL, related_name='node2_pub')
     #Capacity
     capacity = models.BigIntegerField()
-    #node1_policy (may be null)
-    #node2_policy (may be null)
+    chan_point=models.CharField(max_length=67)
+    # Example of chan point
+    # d3dcc7be9d8aa5524cd57a8689aca0bf91ad838300e58eeeb19a5b7dd884f10e:1
     class Meta: #For Primary key with 2 fields
         unique_together = (('date_logged', 'chan_id'),)
 

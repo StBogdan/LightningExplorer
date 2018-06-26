@@ -1,28 +1,16 @@
 <!doctype html>
 <html>
 <head>
-<title>Lightning Monitor</title>
+<title>LNDMON | {{ edgeInfo.chan_id }} </title>
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="{% static "nodes/lndmon.css" %}"/>
 <script src="{% static "nodes/jsUtils.js" %}"></script>
 <script src="{% static "nodes/visUtils.js" %}"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-<style type="text/css">
-  html,
-  body {
-    height: 100%;
-    margin: 0
-  }
 
-  .box {
-    display: flex;
-    flex-flow: column;
-    width:100%;
-    height: 50%;
-  }
-</style>
 </head>
 
 <body>
@@ -81,33 +69,49 @@
     network.setOptions({edges:{smooth:{type:'dynamic'}}});
 
   </script>
-
-  <div class="card" style="width: 100%;">
+<div class="row">
+  <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
-      <h5 class="card-title">Chan ID: {{ edgeInfo.channel_id }}</h5>
+      <h5 class="card-title">Chan ID: {{ edgeInfo.chan_id }}</h5>
       <h6 class="card-subtitle mb-2 text-muted">Capacity: {{ edgeInfo.capacity }} SAT</h6>
       <p class="card-text">
-       <p>Node 1 {{ edgeInfo.node1_pub }}</p>
-        <p>Node 2 {{ edgeInfo.node2_pub }} </p>
         <p>Channel Point {{ edgeInfo.chan_point }} </p>
     </div>
   </div>
-
-  {% for nodeInfo in nodes %}
-    <div class="card" style="width: 100%;">
-      <div class="card-body">
-        <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
-        <p class="card-text"> <p> Color {{ nodeInfo.color }}</p>
-          <p> Advertised addresses:</p>
-          <ul>
-          {% for address in nodeInfo.addresses %}
-          <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
+  <div class="card col-sm-6" style="width: 50%;">
+    <div class="card-body">
+      <h5 class="card-title">Data logged at: {{ date_logged.date_display }}</h5>
+      <h6 class="card-subtitle mb-2 text-muted">View at other dates</h6>
+      <div class="time-box">
+        <ul>
+          {% for oneDate in data_dates %}
+            <li> <a href="/channels/{{ edgeInfo.chan_id }}/{{ oneDate.date_unix }}"> On {{ oneDate.date_display }} </a> </li>
+          {% empty %}
+            <p> No other dates available </p>
           {% endfor %}
-          </ul>
-      </div>
+        </ul>
+    </div> <!-- Scroll box -->
+  </div>  <!-- Card -->
+</div>  <!-- Row -->
+
+<div class="row">
+{% for nodeInfo in nodesInfo %}
+  <div class="card col-sm-6" style="width: 50%;">
+    <div class="card-body">
+      <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
+      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
+      <p class="card-text">
+        <p> Advertised addresses:</p>
+        <ul>
+        {% for address in nodeInfo.addresses %}
+        <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
+        {% endfor %}
+        </ul>
     </div>
+  </div>
 {% endfor %}
+</div>  <!-- Row -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />

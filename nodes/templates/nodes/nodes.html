@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>Lightning Monitor</title>
+<title>LNDMON | Nodes</title>
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
@@ -20,6 +20,8 @@
         <tr>
           <th scope="col">Pubkey</th>
           <th scope="col">Alias</th>
+          <th scope="col">Channels</th>
+          <th scope="col">Capacity</th>
           <th scope="col">Color</th>
           <th scope="col">Address</th>
         </tr>
@@ -29,12 +31,32 @@
         <tr>
           <th scope="row" class="td-small"> <a href="/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
           <td class="td-normal">{{ currentNode.alias }}</td>
+          <td class="td-normal">{{ currentNode.channels }}</td>
+          <td class="td-normal">{{ currentNode.capacity }}</td>
           <td class="td-small">{{ currentNode.color }}</td>
           <td class="td-small">{{ currentNode.addresses }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
+  <nav aria-label="Nodes pagination">
+    <ul class="pagination justify-content-center">
+        {% if unconnectedNodes.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1">&laquo; First </a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ unconnectedNodes.previous_page_number }}">Previous</a></li>
+        {% endif %}
+          <li class="page-item active">
+            <span class="page-link">
+               Page {{ unconnectedNodes.number }}
+             </span>
+            </li>
+        {% if unconnectedNodes.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ unconnectedNodes.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ unconnectedNodes.paginator.num_pages }}">Last &raquo;</a></li>
+        {% endif %}
+      </ul>
+  </nav>
 
 
 <!-- Bootstrap scripts -->

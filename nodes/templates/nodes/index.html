@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>Lightning Monitor</title>
+<title>LNDMON | Graph </title>
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
@@ -54,10 +54,10 @@
   };
   var options = {
     autoResize: true,
-     layout: { improvedLayout:false,
+    layout: { improvedLayout:false,
      },
      physics: {
-       enabled: true, //Enable when starting from scratch
+       enabled: false, //Enable when starting from scratch
        stabilization: false,
        barnesHut: {
          gravitationalConstant: -80000,
@@ -65,7 +65,7 @@
          springLength: 200
        }
      },
-     interaction: {
+    interaction: {
        tooltipDelay: 200,
        hideEdgesOnDrag: true
      },
@@ -73,7 +73,17 @@
        color : {
          opacity:0.4
        }
-     }
+     },
+     nodes: {
+          shape: 'dot',
+          scaling: {
+            customScalingFunction: function (min,max,total,value) {
+              return value/total;
+            },
+            min:25,
+            max:5000
+          }
+        }
   }
   var network = new vis.Network(container, data, options);
 

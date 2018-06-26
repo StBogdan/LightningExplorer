@@ -1,9 +1,9 @@
 
 
 //Vis.js population adding code
-function addNode(nID,nLabel,nColor = '#7BE141', pozX=0, pozY=0) {
+function addNode(nID,nLabel,nColor = '#7BE141',nValue=25, pozX=0, pozY=0) {
 try {
-    nodes.add({ id: nID, label: nLabel , x: pozX, y:pozY, color: nColor, shape: 'dot', font: { size:40,  strokeWidth:5, strokeColor:'#ffffff'}});
+    nodes.add({ id: nID, label: nLabel , value: nValue, x: pozX, y:pozY, color: nColor, shape: 'dot', font: { size:40,  strokeWidth:5, strokeColor:'#ffffff'}});
   }
 catch (err) {
   alert(err);
@@ -24,25 +24,28 @@ function populateGraph (nodeData,edgeData, locationList = {}){
       var current = nodeData[i];
       var x =0;
       var y= 0;
+      // 200 000 SAT is min chan size
+      var size = (current.channels+1)*30;
       if ( current.pub_key in locationList){  //Use cached coords in possible
         x= locationList[current.pub_key]["x"];
         y= locationList[current.pub_key]["y"];
       }
 
-      addNode(current.pub_key,current.alias,current.color,x,y);
+      addNode(current.pub_key,current.alias,current.color,size,x,y);
       // console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
   }
   console.log("Adding edges :" + edgeData.length);
   for( var i=0; i< edgeData.length; i++){
       var current = edgeData[i];
-      addEdge(current.channel_id,current.node2_pub,current.node1_pub,current.capacity/10**2);
-      // console.log("Now edge :" + i + "\t "+ current.channel_id );
+      addEdge(current.chan_id,current.node2_pub,current.node1_pub,current.capacity/10**2);
+      // console.log("Now edge :" + i + "\t "+ current.chan_id );
+      // console.log("Between :" + current.node2_pub + "\t "+ current.node1_pub + "\tCapacity:" + current.capacity );
   }
 }
 
 function addLabels(edgeSet,edgeData){
   for(var i=0; i< edgeData.length;i++){
-      edgeSet.update([{id: edgeData[i]["channel_id"], label: edgeData[i]["capacity"] + " SAT" }]);
+      edgeSet.update([{id: edgeData[i]["chan_id"], label: edgeData[i]["capacity"] + " SAT" }]);
     }
 }
 

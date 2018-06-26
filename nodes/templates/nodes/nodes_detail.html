@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>Lightning Monitor</title>
+<title>LNDMON | {{nodeInfo.alias}}</title>
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
@@ -41,14 +41,14 @@
     };
     var options = {
       autoResize: true,
-       layout: { improvedLayout:false,
+       layout: { improvedLayout:true,
        },
        physics: {
          stabilization: false,
          barnesHut: {
-           gravitationalConstant: -80000,
+           gravitationalConstant: -75000,
            springConstant: 0.001,
-           springLength: 200
+           springLength: 50
          }
        },
        interaction: {
@@ -68,11 +68,14 @@
 
   </script>
 
-  <div class="card" style="width: 100%;">
+<div class="row">
+  <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">PubKey: {{ nodeInfo.pub_key}}</h6>
-      <p class="card-text"> <p> Color {{ nodeInfo.color }}</p>
+      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
+      <h6 class="card-subtitle mb-2 ">Number of channels: {{ nodeInfo.channels}} </h6>
+      <h6 class="card-subtitle mb-2 ">Total capacity: {{ nodeInfo.capacity}} SAT </h6>
+      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
         <p> Advertised addresses:</p>
         <ul>
         {% for address in nodeInfo.addresses %}
@@ -80,7 +83,23 @@
         {% endfor %}
         </ul>
     </div>
-  </div>
+  </div>  <!-- Card -->
+  <div class="card col-sm-6" style="width: 50%;">
+    <div class="card-body">
+      <h5 class="card-title">Data logged at: {{ date_logged.date_display }}</h5>
+      <h6 class="card-subtitle mb-2 text-muted ">View at other dates</h6>
+      <div class="time-box">
+        <ul>
+          {% for oneDate in data_dates %}
+            <li><a href="/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}" >On {{ oneDate.date_display }} </a> </li>
+          {% empty %}
+            <p> No other dates available </p>
+          {% endfor %}
+        </ul>
+      </div> <!-- Scroll box -->
+    </div>
+  </div>  <!-- Card -->
+</div>  <!-- Row -->
 
 <table class="table table-striped table-sm table-details">
   <thead>
@@ -93,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    {% for edge in edges %}
+    {% for edge in edgeTable %}
     <tr>
-      <th scope="row" class= "td-normal"> <a href="/channels/{{ edge.channel_id }}">{{ edge.channel_id}} </a></th>
-      <td class= "td-small"> <a href="/nodes/{{ edge.node1_pub }}">{{ edge.node1_pub }} </a> </td>
-      <td class= "td-small"> <a href="/nodes/{{ edge.node2_pub }}">{{ edge.node2_pub }} </a> </td>
+      <th scope="row" class= "td-normal"> <a href="/channels/{{ edge.chan_id }}/{{ date_logged.date_unix }}">{{ edge.chan_id}} </a></th>
+      <td class= "td-small"> <a href="/nodes/{{ edge.node1_pub }}/{{date_logged.date_unix }}">{{ edge.node1_pub }} </a> </td>
+      <td class= "td-small"> <a href="/nodes/{{ edge.node2_pub }}/{{date_logged.date_unix }}">{{ edge.node2_pub }} </a> </td>
       <td class= "td-normal">{{ edge.capacity}} SAT</td>
       <td class= "td-small">{{ edge.chan_point}}</td>
     </tr>

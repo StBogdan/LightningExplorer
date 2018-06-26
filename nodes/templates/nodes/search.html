@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>Lightning Monitor</title>
+<title>LNDMON | Search </title>
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
@@ -15,8 +15,8 @@
 <body>
 {% include "nodes/navbar.html" %}
 <div class="alert alert-primary mx-auto text-center" role="alert" style="width: 75%;">
-  Showing search results for: "{{searchInfo}}" <br>
-  Showing all of {{nrResults}}
+ {{searchInfo}} <br>
+ {{strResults}}
 </div>
 
 <div class="container" style="width: 90%;">
@@ -25,10 +25,10 @@
 <div class="card mx-auto" >
   <div class="card-body">
     <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
-    <h6 class="card-subtitle mb-2 text-muted"> Color {{ nodeInfo.color }} </h6>
+    <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
+    <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
+    <h6 class="card-subtitle mb-2 text-muted">Advertised addresses </h6>
     <p class="card-text">
-      <p> Advertised addresses:</p>
       <ul>
       {% for address in nodeInfo.addresses %}
       <li>URI: {{ nodeInfo.pub_key}}@{{address.addr}}</li>
@@ -50,7 +50,7 @@
 {% for chanInfo in foundChannels %}
 <div class="card mx-auto">
   <div class="card-body">
-    <h5 class="card-title">Channel ID: <a href="/channels/{{ chanInfo.channel_id }}"> {{ chanInfo.channel_id }} </a> </h5>
+    <h5 class="card-title">Channel ID: <a href="/channels/{{ chanInfo.chan_id }}"> {{ chanInfo.chan_id }} </a> </h5>
     <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ chanInfo.node1_pub }}">  {{ chanInfo.node1_pub}}</a> </h6>
     <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/nodes/{{ chanInfo.node2_pub }}">  {{ chanInfo.node2_pub}}</a> </h6>
     <h6 class="card-subtitle mb-2 text-muted"> Capacity: {{ chanInfo.capacity}} SAT </h6>

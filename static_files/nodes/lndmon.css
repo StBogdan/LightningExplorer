@@ -26,3 +26,9 @@ table {
 .td-normal{
   font-size: 0.9em;
 }
+.time-box {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 15em;
+    padding: 1rem;
+}
