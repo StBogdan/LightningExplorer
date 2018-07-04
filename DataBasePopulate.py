@@ -6,10 +6,37 @@ from datetime import datetime
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
 
 
+def fix_date_string(folderPath = os.getcwd()):
+    for fileName in os.listdir(folderPath):
+        if(fileName.startswith("2018-") and ( fileName.endswith(".graph") or fileName.endswith(".netinfo")) and fileName.replace(":","-") != fileName): #Check that we are modifying the right files
+            print("RENAME:\t"+ fileName + "\t-->\t"+ fileName.replace(":","-"))
+            os.rename(folderPath+ os.sep + fileName, folderPath+ os.sep + fileName.replace(":","-"))
+        # else:
+            # print("RENAME:\tFile " +fileName+ "\tnot eligible for rename")
+
+def fix_dataset(folderPath = os.getcwd()):
+    for dayDir in os.listdir(folderPath):
+        if(os.path.isdir(dataPath + os.sep + dayDir)):
+            print("Fixing folder\t" +dayDir )
+            fix_date_string(folderPath+os.sep +dayDir)
+
+
+def fix_date_string_folder(dataPath):
+    for fileName in os.listdir(dataPath):
+        if(fileName.startswith("18") and len(fileName) == 6 and os.path.isdir(dataPath + os.sep + fileName)): #Check that we are modifying the right files
+            newName = "2018-" + fileName[2:4] + "-" + fileName[4:6]
+            print("RENAME:\t"+ fileName + "\t-->\t"+ newName)
+            os.rename(os.getcwd()+ os.sep + fileName, os.getcwd()+ os.sep + newName)
+        else:
+            print("RENAME:\tFile " +fileName+ "\tnot eligible for rename")
+
 def getFiles(full_data_path, one_per_day = 0):
     files= []
     for day_dir in os.listdir(full_data_path):
         # print("In folder " + full_data_path+ os.sep + day_dir )
+        if(not os.path.isdir(full_data_path+ os.sep + day_dir)):
+            continue
+
         if one_per_day:
             day_data = os.listdir(full_data_path+ os.sep + day_dir)[0:2] #Should get a .graph and .netinfo file in there
         else:
@@ -121,7 +148,7 @@ def createDBentries(full_data_path):
     nodes_entries = {}
     edges_entries = []
     policy_entries= []
-    dataFiles = getFiles(full_data_path,1)
+    dataFiles = getFiles(full_data_path,1) #One per day
     index=0
     print("have to process: "+ str(len(dataFiles)) + " files")
 
@@ -157,7 +184,8 @@ exec(open(scriptName).read())
 
 if(input("Are you sure you want to rebuild the database? [y/n] ") == "y"):
     print("Removing existing entries")
-    print(Node.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
+    print(Node.objects.all().delete())    #TODO REMOVE, ONLY USE FOR TESTING
     print(Channel.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
-    print("Adding new entries")
-    createDBentries("/mnt/d/netstates/network_states") #God have mercy on my hard disk
+
+print("Adding new entries")
+createDBentries(data_location)

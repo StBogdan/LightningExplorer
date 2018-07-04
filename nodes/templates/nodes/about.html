@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+<title>LNDMON | Graph </title>
+{% include "nodes/analytics.html" %}
+{% load static %}
+<script src="{% static "nodes/jsUtils.js" %}"></script>
+<link rel="stylesheet" href="{% static "nodes/lndmon.css" %}"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+</head>
+
+<body>
+{% include "nodes/navbar.html" %}
+
+<div class="index-title jumbotron-fluid">
+<h1>Lightning⚡Network Monitor</h1>
+  <p class="lead"> A website developed as part of a Master's Thesis done at Imperial College London</p>
+</div> <!-- Intro -->
+
+<div class="container" style="width: 90%; padding-bottom:5vh;">
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Motivation</h5>
+    <p class="card-text">The Lightning network, the most prominent proposal for enabling micro-transactions and addressing the transaction throughput bottleneck of Bitcoin, has seen relatively little work dedicated to it. With an increasing number of active nodes on both the testing and main blockchains, data can now be gathered from live peers conducting transactions using implementations of the Lightning protocol standards.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Aims</h5>
+    <p class="card-text">Is it hoped that this tool will allow a better understanding the practicality of payment channel networks and identify problems arising from their real-world use, and potentially guide future research and development of this technology with grounded data on network behaviour, rather that assumptions.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Our nodes:</h5>
+    <p class="card-text">We are currently running 3 nodes (shown below) for data collection. Connecting with out nodes helps us maintain an accurate view of the network</p>
+
+
+<div class="card mx-auto" >
+  <div class="card-body">
+    <h5 class="card-title">London-Connect</h5>
+    <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/02f82a1188bb4baa885de6c0d14276db056aa9da768de545c4fc7349379b5670cb">  02f82a1188bb4baa885de6c0d14276db056aa9da768de545c4fc7349379b5670cb</a> </h6>
+  </div>
+</div>
+
+<div class="card mx-auto" >
+  <div class="card-body">
+    <h5 class="card-title">Frankfurt-Connect</h5>
+    <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/023b14be2d7a3fc2b24eb14b25d44afc41cb8d0a6e01067da36ea3299e2f9bfe70">  023b14be2d7a3fc2b24eb14b25d44afc41cb8d0a6e01067da36ea3299e2f9bfe70</a> </h6>
+  </div>
+</div>
+
+<div class="card mx-auto" >
+  <div class="card-body">
+    <h5 class="card-title">Lnd-san-francisco</h5>
+    <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/02b9804133643b78aa6f6221284ddef81785f88f861931a3e574353e3a642c0f9f">  02b9804133643b78aa6f6221284ddef81785f88f861931a3e574353e3a642c0f9f</a> </h6>
+  </div>
+</div>
+
+</div> <!-- Card body -->
+</div>
+</div> <!-- Container -->
+
+<!-- Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+{% include "nodes/footer.html" %}
+</body>
+</html>

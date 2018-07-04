@@ -5,97 +5,82 @@
 {% include "nodes/analytics.html" %}
 {% load static %}
 <script src="{% static "nodes/jsUtils.js" %}"></script>
-<script src="{% static "nodes/visUtils.js" %}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="{% static "nodes/lndmon.css" %}"/>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-
-<style type="text/css">
-  html,
-  body {
-    height: 100%;
-    margin: 0
-  }
-
-  .box {
-    display: flex;
-    flex-flow: column;
-    overflow: hidden;
-    height: 94%;
-  }
-</style>
-
 </head>
 
 
 <body>
 {% include "nodes/navbar.html" %}
 
-<div class="box" id="mynetwork"> </div>
+<div class="index-title jumbotron-fluid">
+<h1>A monitoring tool for the Lightning Network</h1>
+  <p class="lead"> Visualise data taken from the Lightning Network, on both the Bitcoin testnet and mainnet</p>
+  <hr class="my-4">
+  <p> View how nodes and payment channels evolved over time, or see network-wide statistics. Click the links below to learn more about how data is collected</p>
+<a href="https://bitcoin.org" class="btn btn-warning btn-sm">About Bitcoin</a>
+<a href="https://lightning.network" class="btn btn-warning btn-sm">About Lightning</a>
+<a href="/about" class="btn btn-info btn-sm">About lndmon.com</a>
+</div> <!-- Intro -->
 
-<script type="text/javascript">
-  // create an array with nodes
-  var nodes = new vis.DataSet([]);
-  // create an array with edges
-  var edges = new vis.DataSet([]);
 
-  //Get network data
-  var networkData = {{ jsonData | safe }} ;
-  var networkPoz = {{ cachedPoz | safe }} ;
+<div class="card" style="min-height:50vh; overflow-y:scroll">
+  <div class="card-body">
+    <h5 class="card-title">Testnet Status  <a href="#" class="btn btn-outline-info btn-sm float-right">Details</a></h5>
 
-  // create an array with edges
-  populateGraph(networkData.nodes,networkData.edges,networkPoz);
+<div class="card-columns">
+{% for stat in networkStats_testnet %}
+<div class="card">
+  <div class="card-body text-center">
+      <h6 class="card-title"> {{stat.0}}</h6>
+    <h5 class="card-subtitle mb-2 text-muted "> {{stat.1}}</h5>
+  </div>
+</div>
+{% empty %}
+<div class="card">
+  <div class="card-body text-center">
+    <h5 class="card-subtitle mb-2 text-muted ">Data not currently available</h5>
+  </div>
+</div>
+{% endfor %}
+</div> <!-- Card columns -->
 
-  // create a network
-  var container = document.getElementById('mynetwork');
-  var data = {
-    nodes: nodes,
-    edges: edges
-  };
-  var options = {
-    autoResize: true,
-    layout: { improvedLayout:false,
-     },
-     physics: {
-       enabled: false, //Enable when starting from scratch
-       stabilization: false,
-       barnesHut: {
-         gravitationalConstant: -80000,
-         springConstant: 0.001,
-         springLength: 200
-       }
-     },
-    interaction: {
-       tooltipDelay: 200,
-       hideEdgesOnDrag: true
-     },
-     edges : {
-       color : {
-         opacity:0.4
-       }
-     },
-     nodes: {
-          shape: 'dot',
-          scaling: {
-            customScalingFunction: function (min,max,total,value) {
-              return value/total;
-            },
-            min:25,
-            max:5000
-          }
-        }
-  }
-  var network = new vis.Network(container, data, options);
+<p class="card-text"><small class="text-muted">Last updated {{ last_update }} minute(s) ago</small></p>
+</div> <!-- Card body -->
+</div> <!-- Card container -->
 
-  //Disable smooth curvers for better performance
-  network.setOptions({edges:{smooth:{type:'dynamic'}}});
 
-</script>
-<script src="{% static "nodes/visUtilsPost.js" %}"></script>
+
+<div class="card" style="min-height:25vh; overflow-y:scroll">
+  <div class="card-body">
+    <h5 class="card-title">Mainnet Status <a href="#" class="btn btn-outline-info btn-sm float-right">Details</a></h5>
+
+<div class="card-columns">
+{% for stat in networkStats_mainnet %}
+<div class="card">
+  <div class="card-body text-center">
+      <h6 class="card-title"> {{stat.0}}</h6>
+    <h5 class="card-subtitle mb-2 text-muted "> {{stat.1}}</h5>
+  </div>
+</div>
+{% empty %}
+<div class="card">
+  <div class="card-body text-center">
+    <h5 class="card-subtitle mb-2 text-muted "> Data not currently available</h5>
+  </div>
+</div>
+{% endfor %}
+
+</div> <!-- Card columns -->
+<p class="card-text"><small class="text-muted">Updates coming soon</small></p>
+</div> <!-- Card body -->
+</div> <!-- Card container -->
+
+
 <!-- Bootstrap scripts -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
-
+{% include "nodes/footer.html" %}
 </body>
 </html>

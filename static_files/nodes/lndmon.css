@@ -30,5 +30,10 @@ table {
     overflow-y: scroll;
     overflow-x: hidden;
     height: 15em;
-    padding: 1rem;
+}
+
+.index-title {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    align:center;
 }

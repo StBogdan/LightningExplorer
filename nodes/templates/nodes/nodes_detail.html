@@ -15,9 +15,8 @@
 <body>
 {% include "nodes/navbar.html" %}
 
-    <div class="box" id="mynetwork">
-      {# <div  class="row content"></div> #}
-    </div>
+    <div class="box" id="mynetwork"  style="border: 1px solid red;">
+   </div>
 
   <script type="text/javascript">
     // create an array with nodes
@@ -40,7 +39,7 @@
       edges: edges
     };
     var options = {
-      autoResize: true,
+        autoResize: true,
        layout: { improvedLayout:true,
        },
        physics: {
@@ -68,8 +67,8 @@
 
   </script>
 
-<div class="row">
-  <div class="card col-sm-6" style="width: 50%;">
+<div class="row" style="min-height:30vh">
+  <div class="card col-md-6" style="width: 48%;">
     <div class="card-body">
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
       <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
@@ -84,8 +83,8 @@
         </ul>
     </div>
   </div>  <!-- Card -->
-  <div class="card col-sm-6" style="width: 50%;">
-    <div class="card-body">
+  <div class="card col-md-6" style="width: 48%;">
+    <div class="card-body" style="overflow-y:scroll;">
       <h5 class="card-title">Data logged at: {{ date_logged.date_display }}</h5>
       <h6 class="card-subtitle mb-2 text-muted ">View at other dates</h6>
       <div class="time-box">
@@ -132,6 +131,6 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
-
+{% include "nodes/footer.html" %}
 </body>
 </html>

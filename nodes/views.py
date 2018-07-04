@@ -15,7 +15,7 @@ import urllib.request
 def obtainNetworkData(target_date_logged = Node.objects.all().values("date_logged").last()["date_logged"]):
         # fileName= "newGraph.json"
                 # readData = json.loads(codecs.open(fileName, 'r', enc).read())
-        enc='utf-8'
+        # enc='utf-8'
         readData={}
         readData["nodes"] = Node.objects.filter(date_logged= target_date_logged)
         readData["edges"] = Channel.objects.filter(date_logged=target_date_logged)
@@ -27,8 +27,31 @@ def obtainedCachedPoz():
         readData = json.loads(open(fileName).read())
         return readData
 
+def obtainNetworkStatistics():
+    fileName= "latest.netinfo"
+    enc='utf-8'
+    readData = json.loads(codecs.open(fileName, 'r', enc).read())
+    date_logged = os.path.getmtime(os.getcwd() + os.sep + fileName)
+    return [readData,date_logged]
+
 # Create your views here.
 def index(request):
+    networkStats,date_logged = obtainNetworkStatistics() #Date_logged is unix timestamp as float
+    #Convert Sat to BTC
+    networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
+    networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
+    networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
+
+    freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+
+    return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "last_update" : freshness  })
+
+
+def about(request):
+    return render(request, 'nodes/about.html', {})
+
+
+def visualiser(request):
     networkData = obtainNetworkData()
     nodePoz = obtainedCachedPoz()
 
@@ -39,7 +62,7 @@ def index(request):
     n,e = prepareGraphData(networkData["nodes"],networkData["edges"])
 
     # print( [vars(x) for x in networkData["edges"]])
-    return render(request, 'nodes/index.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz) })
+    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz) })
 
 def prepareForPassing(nodeEntries,edgeEntries):
     edgeList = []

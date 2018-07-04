@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+<title>LNDMON | Visualiser </title>
+{% include "nodes/analytics.html" %}
+{% load static %}
+<script src="{% static "nodes/jsUtils.js" %}"></script>
+<script src="{% static "nodes/visUtils.js" %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+<style type="text/css">
+  html,
+  body {
+    height: 100%;
+    margin: 0
+  }
+
+  .box {
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+    height: 94%;
+  }
+</style>
+
+</head>
+
+
+<body>
+{% include "nodes/navbar.html" %}
+
+<div class="box" id="mynetwork"> </div>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([]);
+  // create an array with edges
+  var edges = new vis.DataSet([]);
+
+  //Get network data
+  var networkData = {{ jsonData | safe }} ;
+  var networkPoz = {{ cachedPoz | safe }} ;
+
+  // create an array with edges
+  populateGraph(networkData.nodes,networkData.edges,networkPoz);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {
+    autoResize: true,
+    layout: { improvedLayout:false,
+     },
+     physics: {
+       enabled: false, //Enable when starting from scratch
+       stabilization: false,
+       barnesHut: {
+         gravitationalConstant: -80000,
+         springConstant: 0.001,
+         springLength: 200
+       }
+     },
+    interaction: {
+       tooltipDelay: 200,
+       hideEdgesOnDrag: true
+     },
+     edges : {
+       color : {
+         opacity:0.4
+       }
+     },
+     nodes: {
+          shape: 'dot',
+          scaling: {
+            customScalingFunction: function (min,max,total,value) {
+              return value/total;
+            },
+            min:25,
+            max:5000
+          }
+        }
+  }
+  var network = new vis.Network(container, data, options);
+
+  //Disable smooth curvers for better performance
+  network.setOptions({edges:{smooth:{type:'dynamic'}}});
+
+</script>
+<script src="{% static "nodes/visUtilsPost.js" %}"></script>
+<!-- Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+</body>
+</html>

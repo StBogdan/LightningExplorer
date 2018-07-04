@@ -28,7 +28,7 @@ class Address(models.Model):
     node= models.ForeignKey('Node', on_delete=models.CASCADE)
     date_logged = models.DateTimeField()    # Time logged
 
-    addr = models.CharField(max_length=49) #May be IPv6
+    addr = models.CharField(max_length=100) #May be IPv6
     network = models.CharField(max_length=5)
 
 
