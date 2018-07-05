@@ -27,8 +27,8 @@ def obtainedCachedPoz():
         readData = json.loads(open(fileName).read())
         return readData
 
-def obtainNetworkStatistics():
-    fileName= "latest.netinfo"
+def obtainNetworkStatistics(): #The output from the output of "lncli getnetworkinfo"
+    fileName= open('/etc/django_network_info_path.txt').read().strip()
     enc='utf-8'
     readData = json.loads(codecs.open(fileName, 'r', enc).read())
     date_logged = os.path.getmtime(os.getcwd() + os.sep + fileName)

@@ -1,9 +1,24 @@
 from nodes.models import *
-import os
+import os,django
 import json
 from datetime import datetime
 
+
+#Django setup (run in the virtual environemt)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
+django.setup()
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
+
+'''
+#For use in django shell
+pathScript ="/mnt/d/OneDrive/542_MSc_Indivdual_Project/misc/DataBasePopulate.py"
+exec(open(pathScript).read())
+
+
+scriptName = "DataBasePopulate.py"
+exec(open(scriptName).read())
+
+'''
 
 
 def fix_date_string(folderPath = os.getcwd()):
@@ -169,18 +184,6 @@ def createDBentries(full_data_path):
             print("[ "+ str(index) + "/" +  str(len(dataFiles)) + " ]\t"+"Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
         except Exception as e:
             print("[ "+ str(index) + "/" +  str(len(dataFiles)) + " ]\t" + "ERROR ON FILE: " + file + " \t" + str(e))
-
-
-'''
-#For use in django shell
-pathScript ="/mnt/d/OneDrive/542_MSc_Indivdual_Project/misc/DataBasePopulate.py"
-exec(open(pathScript).read())
-
-
-scriptName = "DataBasePopulate.py"
-exec(open(scriptName).read())
-
-'''
 
 if(input("Are you sure you want to rebuild the database? [y/n] ") == "y"):
     print("Removing existing entries")
