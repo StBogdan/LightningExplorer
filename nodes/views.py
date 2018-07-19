@@ -4,7 +4,7 @@ from django.views import generic
 from django.http import HttpResponse
 from nodes.models import *
 from datetime import datetime
-from site_utils import *
+from utils_site import *
 
 
 import json
@@ -117,8 +117,7 @@ def channels(request):
 
 def metrics(request):
         if(len(Metric.objects.all()) == 0):
-            figuresFolder = "media"
-            db_put_metrics(os.listdir(figuresFolder),figuresFolder)
+            db_put_metrics(os.listdir("media"),"media")
         return render(request, 'nodes/metrics.html', {"figures" : Metric.objects.all() })
 
 def nodes_detail(request, nodePubKey,date_logged= Node.objects.all().values("date_logged").first()["date_logged"]):
@@ -160,14 +159,6 @@ def channels_detail(request, chanID,date_logged= Node.objects.all().values("date
                     "nodesInfo": n ,
                     "data_dates": data_dates,
                     "date_logged": {"date_display": date_logged.strftime("%Y-%m-%d %H:%M"), "date_unix" : date_logged.strftime("%s")}})
-
-def db_put_metrics(files,fileURL):
-    for file in files:
-        # os.getcwd()+os.sep +
-        imageSource =  fileURL + os.sep+ file
-        newMetric = Metric(image_url = imageSource, title=getTitle(file), description=getDescription(file))
-        newMetric.save()
-        print("Put metric in database")
 
 
 def getEdgeConnections(networkGraph, edgeID):

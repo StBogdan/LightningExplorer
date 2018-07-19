@@ -1,4 +1,3 @@
-from nodes.models import *
 import os,django
 import json
 from datetime import datetime
@@ -8,42 +7,7 @@ from datetime import datetime
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
 django.setup()
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
-
-'''
-#For use in django shell
-pathScript ="/mnt/d/OneDrive/542_MSc_Indivdual_Project/misc/DataBasePopulate.py"
-exec(open(pathScript).read())
-
-
-scriptName = "DataBasePopulate.py"
-exec(open(scriptName).read())
-
-'''
-
-
-def fix_date_string(folderPath = os.getcwd()):
-    for fileName in os.listdir(folderPath):
-        if(fileName.startswith("2018-") and ( fileName.endswith(".graph") or fileName.endswith(".netinfo")) and fileName.replace(":","-") != fileName): #Check that we are modifying the right files
-            print("RENAME:\t"+ fileName + "\t-->\t"+ fileName.replace(":","-"))
-            os.rename(folderPath+ os.sep + fileName, folderPath+ os.sep + fileName.replace(":","-"))
-        # else:
-            # print("RENAME:\tFile " +fileName+ "\tnot eligible for rename")
-
-def fix_dataset(folderPath = os.getcwd()):
-    for dayDir in os.listdir(folderPath):
-        if(os.path.isdir(dataPath + os.sep + dayDir)):
-            print("Fixing folder\t" +dayDir )
-            fix_date_string(folderPath+os.sep +dayDir)
-
-
-def fix_date_string_folder(dataPath):
-    for fileName in os.listdir(dataPath):
-        if(fileName.startswith("18") and len(fileName) == 6 and os.path.isdir(dataPath + os.sep + fileName)): #Check that we are modifying the right files
-            newName = "2018-" + fileName[2:4] + "-" + fileName[4:6]
-            print("RENAME:\t"+ fileName + "\t-->\t"+ newName)
-            os.rename(os.getcwd()+ os.sep + fileName, os.getcwd()+ os.sep + newName)
-        else:
-            print("RENAME:\tFile " +fileName+ "\tnot eligible for rename")
+from nodes.models import *
 
 def getFiles(full_data_path, one_per_day = 0):
     files= []
@@ -185,10 +149,21 @@ def createDBentries(full_data_path):
         except Exception as e:
             print("[ "+ str(index) + "/" +  str(len(dataFiles)) + " ]\t" + "ERROR ON FILE: " + file + " \t" + str(e))
 
-if(input("Are you sure you want to rebuild the database? [y/n] ") == "y"):
-    print("Removing existing entries")
-    print(Node.objects.all().delete())    #TODO REMOVE, ONLY USE FOR TESTING
-    print(Channel.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
 
-print("Adding new entries")
-createDBentries(data_location)
+def populate_db():
+    if(input("Are you sure you want to rebuild the database? [y/n] ") == "y"):
+        print("Removing existing entries")
+        print(Node.objects.all().delete())    #TODO REMOVE, ONLY USE FOR TESTING
+        print(Channel.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
+
+    if(input("Add new entries? [y/n] ") == "y"):
+        createDBentries(data_location)
+
+'''
+#For use in django shell
+pathScript ="/mnt/d/OneDrive/542_MSc_Indivdual_Project/misc/DataBasePopulate.py"
+exec(open(pathScript).read())
+
+scriptName = "DataBasePopulate.py"
+exec(open(scriptName).read())
+'''
