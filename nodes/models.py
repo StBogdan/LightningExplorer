@@ -3,9 +3,9 @@ from django.db import models
 # Create your models here.
 class Metric(models.Model):
     image_url = models.CharField(max_length=50)
-    title = models.CharField(max_length=50)
+    title =     models.CharField(max_length=50)
     description = models.CharField(max_length=250)
-    # dataset_url = models.CharField(max_length=250) #Path to file containing the dataset
+    dataset_url = models.CharField(max_length=250) #Path to file containing the dataset
 
 class Node(models.Model):
     date_logged = models.DateTimeField()    # Time logged

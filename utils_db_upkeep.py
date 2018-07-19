@@ -5,13 +5,14 @@
 import os,django
 import json
 from datetime import datetime
+from datetime import timedelta
 from utils_databasePopulate import *
 
 #Setup django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
-django.setup()
-from nodes.models import *
-data_location = open('/etc/lndmon_data_location.txt').read().strip()
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
+# django.setup()
+# from nodes.models import *
+# data_location = open('/etc/lndmon_data_location.txt').read().strip()
 
 def getLastDate():
     try:
@@ -49,4 +50,6 @@ def data_update(full_date = getCurrentDate() ):
    else:
        print("Current day is in databaset")
 
-data_update()
+# Last day's data should be in own folder
+#Update by putting the last day in
+data_update(getCurrentDate()-timedelta(day=1))

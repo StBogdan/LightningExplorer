@@ -9,7 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+
 </head>
 
 
@@ -19,57 +21,39 @@
 <div class="card-columns">
 {% for indivMetric in figures %}
   <div class="card bg-light lg-6">
-    <img class="card-img-top" src="{{ indivMetric.image_url }}" alt="Card image cap">
+    <canvas id="{{ indivMetric.dataset_url }}"></canvas>
+    <img class="card-img-top" src="{{ indivMetric.image_url }}" alt="{{ indivMetric.description }}">
     <div class="card-body">
-      <h5 class="card-title">{{ indivMetric.title }}</h5>
-      <p class="card-text">{{ indivMetric.description }}</p>
-      <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+      <h5 class="card-title">{{ indivMetric.title }} <a href="#" class="btn btn-outline-info btn-sm float-right">Details</a></h5></h5>
+      <p class="card-text">{{ indivMetric.description }} </p>
     </div>
-  </div>
-{% endfor %}
-<div class="card bg-light lg-6">
-  <canvas id="myChart"></canvas>
-  <div class="card-body">
-    <h5 class="card-title"> GraphTest</h5>
-    <p class="card-text"> Lorem ipsum </p>
-    <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-    <div >
 
       <script>
       //Get passed network data
       // var data_set = {{ test_data_set | safe }} ; //Has to be json encoded
-      var data_set =  [1,2,3,4,5,6,7,8,9,0,0,0,0,-10,-9];
-      var ctx = document.getElementById('myChart').getContext('2d');
+      var data_set =  {{ indivMetric.json_data | safe }} ;
+      var ctx = document.getElementById('{{ indivMetric.dataset_url }}').getContext('2d');
       var chart = new Chart(ctx, {
           // The type of chart we want to create
-          type: 'line',
+          type: 'scatter',
           // The data for our dataset
-          data: {
-              labels: data_set,
-              datasets: [{
-                  label: "GraphTest",
-                  backgroundColor: 'rgb(255, 99, 132)',
-                  borderColor: 'rgb(255, 99, 132)',
-                  data: data_set,
-              }]
-          },
-
+          data: { datasets: [data_set] },
           // Configuration options go here
-          options: {}
+          options: {
+            scales: {
+              xAxes: [{
+                type: 'time'
+              }]
+            }
+          }
       });
       </script>
-    </div>
   </div>
-</div> <!-- Card test -->
-
-
-
+{% empty %}
+      <li>No metrics are currently available</li>
+{% endfor %}
 
 </div> <!-- Card columns -->
-
-
-
-
 
 
 <!-- Bootstrap scripts -->

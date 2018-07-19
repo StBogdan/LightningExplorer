@@ -159,6 +159,7 @@ def populate_db():
     if(input("Add new entries? [y/n] ") == "y"):
         createDBentries(data_location)
 
+# populate_db()
 '''
 #For use in django shell
 pathScript ="/mnt/d/OneDrive/542_MSc_Indivdual_Project/misc/DataBasePopulate.py"

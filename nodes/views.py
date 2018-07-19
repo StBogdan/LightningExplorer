@@ -31,7 +31,7 @@ def obtainNetworkStatistics(): #The output from the output of "lncli getnetworki
     fileName= open('/etc/django_network_info_path.txt').read().strip()
     enc='utf-8'
     readData = json.loads(codecs.open(fileName, 'r', enc).read())
-    date_logged = os.path.getmtime(os.getcwd() + os.sep + fileName)
+    date_logged = os.path.getmtime(fileName)
     return [readData,date_logged]
 
 # Create your views here.
@@ -118,7 +118,18 @@ def channels(request):
 def metrics(request):
         if(len(Metric.objects.all()) == 0):
             db_put_metrics(os.listdir("media"),"media")
-        return render(request, 'nodes/metrics.html', {"figures" : Metric.objects.all() })
+        metrics = Metric.objects.all()
+        for indivMetric in metrics:
+            try:
+                data_set = json.loads(open(indivMetric.dataset_url).read())
+                data_set["data"] = data_set["data"][::80]
+                #Scaling to ease load on broswer
+                indivMetric.json_data = json.dumps(data_set)
+                #TODO Consider scaling factor
+            except Exception as e :
+                print("Error on dataset load for metric:\t" + indivMetric.title + "\t"+ str(e))
+                indivMetric.json_data  = "[]"
+        return render(request, 'nodes/metrics.html', {"figures" : metrics})
 
 def nodes_detail(request, nodePubKey,date_logged= Node.objects.all().values("date_logged").first()["date_logged"]):
         if(type(date_logged) is int or date_logged == ""):

@@ -1,6 +1,8 @@
 #Some functions and utility calls for lndmon.com
 #Bogdan Stoicescu (bs5017)
 import utils_metrics as metrics
+from nodes.models import Metric
+import os
 
 def get_metric_info(file):
     if file == "metric_testnet_avg_chan_size.png":
@@ -19,12 +21,15 @@ def get_metric_info(file):
         return "Network statictic","This show a statistic for the network, more information coming soon",""
 
 
-def db_put_metrics(files,fileURL):
-    for file in files:
+def db_put_metrics(metric_filenames,file_path_prefix):
+    for metric_file in metric_filenames:
         # os.getcwd()+os.sep +
-        imageSource =  fileURL + os.sep+ file
-        metric_title, metric_desc, metric_dataset_url = get_metric_info(imageSource)
-        newMetric = Metric(imageSource, metric_title, metric_desc, metric_dataset_url)
+        imageSource =  file_path_prefix + os.sep+ metric_file
+        metric_title, metric_desc, metric_dataset_url = get_metric_info(metric_file)
+        newMetric = Metric( image_url = imageSource,
+                            title =metric_title,
+                            description=metric_desc,
+                            dataset_url =metric_dataset_url)
         newMetric.save()
         print("Put metric in database")
 
