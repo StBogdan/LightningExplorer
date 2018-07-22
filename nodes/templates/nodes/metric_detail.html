@@ -18,42 +18,41 @@
 <body>
 {% include "nodes/navbar.html" %}
 
-<div class="card-columns">
-{% for indivMetric in figures %}
-  <div class="card bg-light lg-6">
-    <canvas id="{{ indivMetric.dataset_url }}"></canvas>
-    <!-- <img class="card-img-top" src="{{ indivMetric.image_url }}" alt="{{ indivMetric.description }}"> -->
-    <div class="card-body">
-      <h5 class="card-title">{{ indivMetric.title }} <a href="/metrics/{{indivMetric.id}}" class="btn btn-outline-info btn-sm float-right">Details</a></h5></h5>
-      <p class="card-text">{{ indivMetric.description }} </p>
-    </div>
 
-      <script>
-      //Get passed network data
-      // var data_set = {{ test_data_set | safe }} ; //Has to be json encoded
-      var data_sets =  {{ indivMetric.json_data | safe }} ;
-      var ctx = document.getElementById('{{ indivMetric.dataset_url }}').getContext('2d');
-      var chart = new Chart(ctx, {
-          // The type of chart we want to create
-          type: 'scatter',
-          // The data for our dataset
-          data: { datasets: data_sets },
-          // Configuration options go here
-          options: {
-            scales: {
-              xAxes: [{
-                type: 'time'
-              }]
-            }
-          }
-      });
-      </script>
+
+<div class="index-title jumbotron-fluid">
+<h1>{{ metric.title }}</h1>
+</div> <!-- Intro -->
+
+<div class="container" style="width: 90%; padding-bottom:5vh;">
+<div class="card">
+  <h5 class="card-header card-title">Description</h5>
+  <div class="card-body">
+    <p class="card-text"> {{ metric.description }}</p>
   </div>
-{% empty %}
-      <li>No metrics are currently available</li>
-{% endfor %}
-
-</div> <!-- Card columns -->
+</div> <!-- Card -->
+<canvas id="{{ metric.dataset_url }}"></canvas>
+<script>
+//Get passed network data
+// var data_set = {{ test_data_set | safe }} ; //Has to be json encoded
+var data_sets =  {{ metric.json_data | safe }} ;
+var ctx = document.getElementById('{{ metric.dataset_url }}').getContext('2d');
+var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'scatter',
+    // The data for our dataset
+    data: { datasets: data_sets },
+    // Configuration options go here
+    options: {
+      scales: {
+        xAxes: [{
+          type: 'time'
+        }]
+      }
+    }
+});
+</script>
+</div> <!-- Container -->
 
 
 <!-- Bootstrap scripts -->

@@ -7,6 +7,7 @@ from datetime import datetime
 import pickle
 import numpy as np
 
+
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
 def getDataFromFile(fileName):
     data = json.loads(open(fileName).read())
@@ -83,33 +84,53 @@ def process_dataset(dataSetPath):
     return times, valuesNrNodes, valuesNrEdges, networkCapacity, avgChannelSize, gaps, avgDegs, maxDegs
 
 
-def generate_and_save(descriptionString, dataSetPath=data_location):
-    times, valuesNrNodes, valuesNrEdges, networkCapacity, avgChannelSize, gaps, avgDegs, maxDegs = process_dataset(dataSetPath)
+def generate_and_save(descriptionString, data_set= ""):
+    if(data_set == ""):
+        data_set = process_dataset(data_location)
+    print("Generating dataset for:\t"+ descriptionString )
+    times, valuesNrNodes, valuesNrEdges, networkCapacity, avgChannelSize, gaps, avgDegs, maxDegs = data_set
     str_dates = [x.strftime("%Y-%m-%d %H:%M:%S") for x in times]
     resultFilePath= "datasets" + os.sep + descriptionString
-    results = {"label": descriptionString, "data": []}
+    dataset_template =  {"label": descriptionString, "data": []}
+    dataset_template["backgroundColor"]= 'rgba(255, 159, 64, 0.2)'
+    dataset_template["borderColor"]=  'rgba(255, 159, 64, 1)'
+    results = []
 
-    if(descriptionString == "testnet_avg_chan_size"):
-        results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avgChannelSize)]
-    elif(descriptionString == "testnet_network_capacity" ):
-        results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,networkCapacity)]
-    elif(descriptionString == "testnet_nr_nodes_chans" ):
-        results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
-    elif(descriptionString == "testnet_avg_degree" ):
-        results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avgDegs)]
+    if(descriptionString == "metric_testnet_avg_chan_size"):
+        new_dataset = dataset_template
+        new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avgChannelSize)]
+        results.append(new_dataset)
 
-        #TODO ADD me too
-        # results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,maxDegs)]
+    elif(descriptionString == "metric_testnet_network_capacity" ):
+        new_dataset = dataset_template.copy()
+        new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,networkCapacity)]
+        results.append(new_dataset)
+    elif(descriptionString == "metric_testnet_nr_nodes_chans" ):
+        new_dataset = dataset_template.copy()
+        new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
+        results.append(new_dataset)
+    elif(descriptionString == "metric_testnet_avg_degree" ):
+        new_dataset = dataset_template.copy()
+        new_dataset["label"] = "Average node degree"
+        new_dataset["data"]= [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avgDegs)]
+        results.append(new_dataset)
 
-
-    elif(descriptionString == "testnet_nodes_with_chans" ):
-        results["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
+        other_dataset = dataset_template.copy()
+        other_dataset["label"] = "Maximum node degree"
+        other_dataset["backgroundColor"]= 'rgba(153, 102, 255, 0.2)'
+        other_dataset["borderColor"]=   'rgba(153, 102, 255, 1)'
+        other_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,maxDegs)]
+        results.append(other_dataset)
+    elif(descriptionString == "metric_testnet_nodes_with_chans" ):
+        new_dataset = dataset_template.copy()
+        new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
+        results.append(new_dataset)
     # elif(descriptionString == "metric_testnet_locations"):
     #     results =plot_NodesWChannels()
     else:
         return "" #Don't write anything to anywhere is no known metric requested
 
-
+    print("Writing results to file:\t" + resultFilePath)
     results_file = open(resultFilePath,"w")
     results_file.write(json.dumps(results))
     results_file.close()

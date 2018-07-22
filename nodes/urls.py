@@ -11,6 +11,7 @@ urlpatterns = [
     path('nodes', views.nodes, name='nodes'),
     path('channels', views.channels, name='channels'),
     path('metrics', views.metrics, name='metrics'),
+    path('metrics/<slug:metricID>', views.metric_detail, name='metric-detail'),
     path('search', views.search, name='search'),
     path('about', views.about, name='about'),
     path('nodes/<slug:nodePubKey>/<int:date_logged>', views.nodes_detail, name='node-detail'),

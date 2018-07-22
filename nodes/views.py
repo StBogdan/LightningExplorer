@@ -4,7 +4,7 @@ from django.views import generic
 from django.http import HttpResponse
 from nodes.models import *
 from datetime import datetime
-from utils_site import *
+from utils_db_upkeep import *
 
 
 import json
@@ -36,13 +36,17 @@ def obtainNetworkStatistics(): #The output from the output of "lncli getnetworki
 
 # Create your views here.
 def index(request):
-    networkStats,date_logged = obtainNetworkStatistics() #Date_logged is unix timestamp as float
-    #Convert Sat to BTC
-    networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
-    networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
-    networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
+    try:
+        networkStats,date_logged = obtainNetworkStatistics() #Date_logged is unix timestamp as float
+        #Convert Sat to BTC
+        networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
+        networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
+        networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
 
-    freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+    except:
+        networkStats={}
+        freshness="some time ago"
 
     return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "last_update" : freshness  })
 
@@ -121,15 +125,42 @@ def metrics(request):
         metrics = Metric.objects.all()
         for indivMetric in metrics:
             try:
-                data_set = json.loads(open(indivMetric.dataset_url).read())
-                data_set["data"] = data_set["data"][::80]
-                #Scaling to ease load on broswer
-                indivMetric.json_data = json.dumps(data_set)
+                data_sets = json.loads(open(indivMetric.dataset_url).read())
+                #Scaling (get every 80th datapoint) to ease load on broswer
                 #TODO Consider scaling factor
+
+                for one_set in data_sets:
+                    one_set["data"] = one_set["data"][::40]
+
+                indivMetric.json_data = json.dumps(data_sets)
             except Exception as e :
                 print("Error on dataset load for metric:\t" + indivMetric.title + "\t"+ str(e))
                 indivMetric.json_data  = "[]"
         return render(request, 'nodes/metrics.html', {"figures" : metrics})
+
+def metric_detail(request, metricID):
+        try:    #DB fetch
+            indivMetricQuery = Metric.objects.filter(id= int(metricID))
+            if( len(indivMetricQuery) != 1):
+                raise Http404("Unable to find metric by given ID")
+            indivMetric=indivMetricQuery[0]
+        except Exception as e:
+            print("Error on database load for metric ID:\t" + metricID + "\t"+ str(e))
+            raise Http404("Unable to find metric by given ID")
+
+        try:     #Dataset fetch
+            data_sets = json.loads(open(indivMetric.dataset_url).read())
+            #Scaling (get every 80th datapoint) to ease load on broswer
+            #TODO Consider scaling factor
+            for one_set in data_sets:
+                one_set["data"] = one_set["data"][::40]
+
+            indivMetric.json_data = json.dumps(data_sets)
+        except Exception as e :
+            print("Error on dataset load for metric ID:\t" + indivMetric.title + "\t"+ str(e))
+            indivMetric.json_data  = "[]"
+        return render(request, 'nodes/metric_detail.html', {"metric" : indivMetric})
+
 
 def nodes_detail(request, nodePubKey,date_logged= Node.objects.all().values("date_logged").first()["date_logged"]):
         if(type(date_logged) is int or date_logged == ""):
