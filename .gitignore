@@ -1,6 +1,7 @@
 #Django Files
 static_nodes/
 datasets/
+nodes/migrations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

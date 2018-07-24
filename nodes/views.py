@@ -12,7 +12,9 @@ import codecs
 import os
 import urllib.request
 
-def obtainNetworkData(target_date_logged = Node.objects.all().values("date_logged").last()["date_logged"]):
+def obtainNetworkData(target_date_logged = ""):
+        if(target_date_logged == ""):
+            target_date_logged = Node.objects.all().values("date_logged").last()["date_logged"]
         # fileName= "newGraph.json"
                 # readData = json.loads(codecs.open(fileName, 'r', enc).read())
         # enc='utf-8'
@@ -116,8 +118,8 @@ def channels(request):
         paginator_edges = Paginator(all_edges, 15)
 
         page= request.GET.get('page')
-        edges = paginator_edges.get_page(page)
-        return render(request, 'nodes/channels.html', {"channels" : edges })
+        channels_page = paginator_edges.get_page(page)
+        return render(request, 'nodes/channels.html', {"channels" : channels_page })
 
 def metrics(request):
         if(len(Metric.objects.all()) == 0):
@@ -162,7 +164,9 @@ def metric_detail(request, metricID):
         return render(request, 'nodes/metric_detail.html', {"metric" : indivMetric})
 
 
-def nodes_detail(request, nodePubKey,date_logged= Node.objects.all().values("date_logged").first()["date_logged"]):
+def nodes_detail(request, nodePubKey,date_logged= ""):
+        if(date_logged== ""):
+            date_logged =Node.objects.all().values("date_logged").first()["date_logged"]
         if(type(date_logged) is int or date_logged == ""):
             date_logged = datetime.fromtimestamp(int(date_logged))
 
@@ -183,7 +187,9 @@ def nodes_detail(request, nodePubKey,date_logged= Node.objects.all().values("dat
                         "nodeInfo" : vars(nodeID),
                         "date_logged": {"date_display": date_logged.strftime("%Y-%m-%d %H:%M"), "date_unix" : date_logged.strftime("%s")}})
 
-def channels_detail(request, chanID,date_logged= Node.objects.all().values("date_logged").first()["date_logged"]):
+def channels_detail(request, chanID,date_logged= ""):
+        if(date_logged==""):
+            date_logged= Node.objects.all().values("date_logged").first()["date_logged"]
         if(type(date_logged) is int ):
             date_logged = datetime.fromtimestamp(int(date_logged))
         networkData = obtainNetworkData(date_logged)

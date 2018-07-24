@@ -127,11 +127,11 @@ def createDBentries(full_data_path):
     nodes_entries = {}
     edges_entries = []
     policy_entries= []
-    dataFiles = getFiles(full_data_path,1) #One per day
+    data_folders = getFiles(full_data_path,1) #One per day
     index=0
-    print("have to process: "+ str(len(dataFiles)) + " files")
+    print("Have to process: "+ str(len(data_folders)) + " folders")
 
-    for file in dataFiles:
+    for file in data_folders:
         index+=1
         try:
             date,nodes,chans = getNetworkData(file)
@@ -145,9 +145,9 @@ def createDBentries(full_data_path):
 
             edges_entries, policies = createChanEntries(chans,date,nodes_entries)
 
-            print("[ "+ str(index) + "/" +  str(len(dataFiles)) + " ]\t"+"Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
+            print("[ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t"+"Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
         except Exception as e:
-            print("[ "+ str(index) + "/" +  str(len(dataFiles)) + " ]\t" + "ERROR ON FILE: " + file + " \t" + str(e))
+            print("[ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t" + "ERROR ON FILE: " + file + " \t" + str(e))
 
 
 def populate_db():

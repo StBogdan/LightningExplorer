@@ -131,7 +131,8 @@ def generate_and_save(descriptionString, data_set= ""):
         return "" #Don't write anything to anywhere is no known metric requested
 
     print("Writing results to file:\t" + resultFilePath)
-    results_file = open(resultFilePath,"w")
+    # (Create and) write result to file
+    results_file = open(resultFilePath,"w+")
     results_file.write(json.dumps(results))
     results_file.close()
     return resultFilePath #Relative to django project
