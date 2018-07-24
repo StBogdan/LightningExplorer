@@ -122,6 +122,8 @@ def channels(request):
         return render(request, 'nodes/channels.html', {"channels" : channels_page })
 
 def metrics(request):
+
+        #Create metrics if none exist
         if(len(Metric.objects.all()) == 0):
             db_put_metrics(os.listdir("media"),"media")
         metrics = Metric.objects.all()
@@ -137,7 +139,7 @@ def metrics(request):
                 indivMetric.json_data = json.dumps(data_sets)
             except Exception as e :
                 print("Error on dataset load for metric:\t" + indivMetric.title + "\t"+ str(e))
-                indivMetric.json_data  = "[]"
+                indivMetric.json_data  = ""
         return render(request, 'nodes/metrics.html', {"figures" : metrics})
 
 def metric_detail(request, metricID):
@@ -161,6 +163,8 @@ def metric_detail(request, metricID):
         except Exception as e :
             print("Error on dataset load for metric ID:\t" + indivMetric.title + "\t"+ str(e))
             indivMetric.json_data  = "[]"
+
+        print(indivMetric.dataset_type)
         return render(request, 'nodes/metric_detail.html', {"metric" : indivMetric})
 
 

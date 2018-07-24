@@ -7,6 +7,23 @@ from datetime import datetime
 import pickle
 import numpy as np
 
+#Returns in order,
+# title, description, dataset_url, dataset_type, dataset_options,parents (if any)
+def get_metric_info(file):
+    if file == "metric_testnet_avg_chan_size.png":
+        return "Average Channel Size", "In Satoshis, how big is your average channel, returned by 'getNetworkInfo'", generate_and_save(file.replace(".png","")),"'scatter'"
+    elif file == "metric_testnet_network_capacity.png":
+        return "Network capacity", "Total network capacity, in BTC (10^8 or 100 000 000 SAT)", generate_and_save(file.replace(".png","")),"'scatter'"
+    elif file == "metric_testnet_nr_nodes_chans.png":
+        return "Network presence","Number of nodes with open channels compared to the total number of nodes",generate_and_save(file.replace(".png","")),"'scatter'"
+    elif file == "metric_testnet_avg_degree.png":
+        return "Average number of channels per node","Showing both the average and the maximum number of channels per node.\nKeep in mind that a significant proportion of nodes do not have open channels", generate_and_save(file.replace(".png","")),"'scatter'"
+    elif file == "metric_testnet_nodes_with_chans.png":
+        return "Proportion of nodes with channels","The situation is looking more interesting on the mainnet, where the number of channels exceeds the number of nodes, though more data needs to be collected", generate_and_save(file.replace(".png","")),"'scatter'"
+    elif file == "metric_testnet_locations.png":
+        return "Global distribution of nodes","Based on a location search for the advertised IPs", generate_and_save(file.replace(".png","")),""
+    else:
+        return "Network statictic","This show a statistic for the network, more information coming soon","",""
 
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
 def getDataFromFile(fileName):
