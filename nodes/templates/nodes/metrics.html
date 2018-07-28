@@ -34,18 +34,9 @@
     var data_sets =  {{ indivMetric.json_data | safe }} ;
     var ctx = document.getElementById('{{ indivMetric.dataset_url }}').getContext('2d');
     var chart = new Chart(ctx, {
-        // The type of chart we want to create
-        type: {{ indivMetric.dataset_type | safe}},
-        // The data for our dataset
-        data: { datasets: data_sets },
-        // Configuration options go here
-        options: {
-          scales: {
-            xAxes: [{
-              type: 'time'
-            }]
-          }
-        }
+      type: {{ indivMetric.dataset_type |safe }} ,
+      data: {  {% if indivMetric.labels %}labels: {{indivMetric.labels | safe}},{% endif %} datasets: data_sets },
+      {% if indivMetric.dataset_options %}{{ indivMetric.dataset_options |safe }}{% endif %}
     });
     </script>
     {% else %}

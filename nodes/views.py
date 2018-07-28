@@ -127,45 +127,53 @@ def metrics(request):
         if(len(Metric.objects.all()) == 0):
             db_put_metrics(os.listdir("media"),"media")
         metrics = Metric.objects.all()
-        for indivMetric in metrics:
+        for single_metric in metrics:
             try:
-                data_sets = json.loads(open(indivMetric.dataset_url).read())
+                data_sets = json.loads(open(single_metric.dataset_url).read())
                 #Scaling (get every 80th datapoint) to ease load on broswer
                 #TODO Consider scaling factor
 
                 for one_set in data_sets:
                     one_set["data"] = one_set["data"][::40]
 
-                indivMetric.json_data = json.dumps(data_sets)
+                single_metric.json_data = json.dumps(data_sets)
             except Exception as e :
-                print("Error on dataset load for metric:\t" + indivMetric.title + "\t"+ str(e))
-                indivMetric.json_data  = ""
+                print("Error on dataset load for metric:\t" + single_metric.title + "\t"+ str(e))
+                single_metric.json_data  = ""
         return render(request, 'nodes/metrics.html', {"figures" : metrics})
 
 def metric_detail(request, metricID):
         try:    #DB fetch
-            indivMetricQuery = Metric.objects.filter(id= int(metricID))
-            if( len(indivMetricQuery) != 1):
+            single_metricQuery = Metric.objects.filter(id= int(metricID))
+            if( len(single_metricQuery) != 1):
                 raise Http404("Unable to find metric by given ID")
-            indivMetric=indivMetricQuery[0]
+            single_metric=single_metricQuery[0]
+            filter_sieve= 40
         except Exception as e:
             print("Error on database load for metric ID:\t" + metricID + "\t"+ str(e))
             raise Http404("Unable to find metric by given ID")
 
         try:     #Dataset fetch
-            data_sets = json.loads(open(indivMetric.dataset_url).read())
+            data_sets = json.loads(open(single_metric.dataset_url).read())
+            try:
+                data_labels = json.loads(open(single_metric.dataset_labels).read())
+                single_metric.labels = json.dumps(data_labels)
+                filter_sieve=1 #if has labels, no sieving
+            except Exception as e:
+                print("Error on labels load for metric ID:\t" + metricID + "\t"+ str(e))
             #Scaling (get every 80th datapoint) to ease load on broswer
             #TODO Consider scaling factor
             for one_set in data_sets:
-                one_set["data"] = one_set["data"][::40]
+                one_set["data"] = one_set["data"][::filter_sieve]
 
-            indivMetric.json_data = json.dumps(data_sets)
+            single_metric.json_data = json.dumps(data_sets)
+
         except Exception as e :
-            print("Error on dataset load for metric ID:\t" + indivMetric.title + "\t"+ str(e))
-            indivMetric.json_data  = "[]"
+            print("Error on dataset load for metric ID:\t" + single_metric.title + "\t"+ str(e))
+            single_metric.json_data  = "[]"
 
-        print(indivMetric.dataset_type)
-        return render(request, 'nodes/metric_detail.html', {"metric" : indivMetric})
+        print(single_metric.dataset_type)
+        return render(request, 'nodes/metric_detail.html', {"metric" : single_metric})
 
 
 def nodes_detail(request, nodePubKey,date_logged= ""):

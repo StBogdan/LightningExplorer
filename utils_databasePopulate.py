@@ -151,7 +151,7 @@ def createDBentries(full_data_path):
 
 
 def populate_db():
-    if(input("Are you sure you want to rebuild the database? [y/n] ") == "y"):
+    if(input("Are you sure you want to rebuild the database? (LOSE ALL DATA) [y/n] ") == "y"):
         print("Removing existing entries")
         print(Node.objects.all().delete())    #TODO REMOVE, ONLY USE FOR TESTING
         print(Channel.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
@@ -168,3 +168,6 @@ exec(open(pathScript).read())
 scriptName = "DataBasePopulate.py"
 exec(open(scriptName).read())
 '''
+# data_update(getCurrentDate(timedelta(days=1)))
+if __name__ == "__main__":
+    populate_db()

@@ -8,11 +8,13 @@ from datetime import datetime
 from datetime import timedelta
 from utils_databasePopulate import *
 import utils_metrics as metrics
+import utils_IP as ip
+import sys
 #Setup django environment
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
 # django.setup()
 # from nodes.models import *
-# data_location = open('/etc/lndmon_data_location.txt').read().strip()
+data_location = open('/etc/lndmon_data_location.txt').read().strip()
 
 
 def db_put_metrics(metric_filenames,file_path_prefix):
@@ -28,6 +30,7 @@ def db_put_metrics(metric_filenames,file_path_prefix):
                             dataset_type= metric_dataset_type,
                             dataset_options= metric_dataset_options,
                             dataset_url =metric_dataset_url,
+                            dataset_labels = metric_dataset_url+"_labels",
                             image_url = imageSource)
         newMetric.save()
         print("Put metric in database")
@@ -35,28 +38,43 @@ def db_put_metrics(metric_filenames,file_path_prefix):
 def db_update_metrics():
     db_put_metrics(os.listdir("media"),"media")
 
+def db_reset_metrics():
+    print("Removing all metrics currently in database")
+    Metric.objects.all().delete()
 
-def getLastDate():
+def get_last_date():
     try:
         last_date= Node.objects.all().values("date_logged").first()["date_logged"].strftime("%Y-%m-%d")
     except:
         last_date="No dates logged"
-    return
+    return last_date
 
-def getCurrentDate(time_offset = timedelta()):
+def get_current_date(time_offset = timedelta()):
     return (datetime.now() - time_offset).strftime("%Y-%m-%d")
 
-def getMetricList():
+def get_metric_list():
     #look in the db, grab all metrics and get their name (cut off the "media/" prefix)
     return [ x["image_url"].split("/")[1].replace(".png","") for x in  Metric.objects.all().values("image_url")]
 
+def get_date_data(target_date):
+    print(get_last_date())
+    print("Get date data in:\t" + data_location + os.sep + target_date)
+    datafiles = os.listdir(data_location + os.sep + target_date)
+    first_file = [x for x in datafiles if x.endswith(".graph")][0]
+    file_path = data_location + os.sep + target_date+ os.sep + first_file
+    return file_path
+
+def ip_map_update(target_date):
+    file_fpath = get_date_data(target_date)
+    ip_poz_dict = ip.create_ip_dict(file_fpath)
+    results_file = open("datasets/ip_location_data","w+")
+    results_file.write(json.dumps(ip_poz_dict))
+    results_file.close()
 
 def add_new_day(target_date): #Date is YYYY-MM-DD format string
     try:
         #Get the first file (.graph will be before .netinfo)
-        datafiles = os.listdir(data_location + os.sep + target_date)
-        first_file = [x for x in datafiles if x.endswith(".graph")][0]
-        file_path = data_location + os.sep + target_date+ os.sep + first_file
+        file_path= get_date_data(target_date)
         print("Got target file:\t"+ file_path)
         date,nodes,chans = getNetworkData(file_path)
 
@@ -69,9 +87,9 @@ def add_new_day(target_date): #Date is YYYY-MM-DD format string
     except Exception as e:
         print("ERROR ON DATE: " + target_date + " \t" + str(e))
 
-def data_update(full_date = getCurrentDate() ):
-   if(getLastDate() != full_date ):
-       print("Adding day in databaset")
+def data_update(full_date = get_current_date() ):
+   if(get_last_date() != full_date ):
+       print("Adding day in databaset:\t" + str(full_date))
        add_new_day(full_date)
    else:
        print("Current day is in databaset")
@@ -84,9 +102,22 @@ def dataset_update(metric_list):
     print("Updated datasets")
 
 # Last day's data should be in own folder
-#Update by putting the last day in
-# data_update(getCurrentDate(timedelta(days=1)))
+# Update by putting the last day in
+# data_update(get_current_date(timedelta(days=1)))
 if __name__ == "__main__":
-    if(len(getMetricList()) == 0):
+    # Update IP map
+    ip_map_update(get_last_date())
+
+    #Put new day in db
+    data_update()
+
+    #Option for reseting metrics
+    if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
+        db_reset_metrics()
+
+    #Check metric presence
+    if(len(get_metric_list()) == 0):
         db_update_metrics()
-    dataset_update(getMetricList())
+
+    #Update datasets used by metrics
+    dataset_update(get_metric_list())

@@ -5,7 +5,8 @@ class Metric(models.Model):
 
     title           = models.CharField(max_length=50)
     description     = models.CharField(max_length=250)
-    dataset_type    = models.CharField(max_length=100, default= "scatter")
+    dataset_type    = models.CharField(max_length=100, default= "'scatter'")
+    dataset_labels  = models.CharField(max_length=999, blank=True) # Optional, expect to find in "<dataset_file>_labels"
     dataset_options = models.CharField(max_length=999, blank=True) #Might be a bit too much
     dataset_url  = models.CharField(max_length=250) #Path to file containing the dataset
     image_url    = models.CharField(max_length=50)
