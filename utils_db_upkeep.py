@@ -20,20 +20,19 @@ data_location = open('/etc/lndmon_data_location.txt').read().strip()
 def db_put_metrics(metric_filenames,file_path_prefix):
     for metric_file in metric_filenames:
         # os.getcwd()+os.sep +
-        imageSource =  file_path_prefix + os.sep+ metric_file
-        metric_title, metric_desc, metric_dataset_url,metric_dataset_type = metrics.get_metric_info(metric_file)
-        metric_dataset_options = "options: { scales: { xAxes: [{ type: 'time' }] }}"
+        print("Putting metric in database:\t"+ metric_file)
 
+        imageSource =  file_path_prefix + os.sep+ metric_file
+        metric_dict = metrics.get_metric_info(metric_file)
         newMetric = Metric(
-                            title =metric_title,
-                            description=metric_desc,
-                            dataset_type= metric_dataset_type,
-                            dataset_options= metric_dataset_options,
-                            dataset_url =metric_dataset_url,
-                            dataset_labels = metric_dataset_url+"_labels",
-                            image_url = imageSource)
+                            title       = metric_dict["title"],
+                            description = metric_dict["description"],
+                            dataset_type= metric_dict["dataset_type"],
+                            dataset_options= metric_dict["dataset_options"],
+                            dataset_url    = metric_dict["dataset_url"],
+                            dataset_labels = metric_dict["dataset_labels"],
+                            image_url      = metric_dict["image_url"])
         newMetric.save()
-        print("Put metric in database")
 
 def db_update_metrics():
     db_put_metrics(os.listdir("media"),"media")
@@ -42,7 +41,7 @@ def db_reset_metrics():
     print("Removing all metrics currently in database")
     Metric.objects.all().delete()
 
-def get_last_date():
+def get_last_logged_date():
     try:
         last_date= Node.objects.all().values("date_logged").first()["date_logged"].strftime("%Y-%m-%d")
     except:
@@ -54,10 +53,10 @@ def get_current_date(time_offset = timedelta()):
 
 def get_metric_list():
     #look in the db, grab all metrics and get their name (cut off the "media/" prefix)
-    return [ x["image_url"].split("/")[1].replace(".png","") for x in  Metric.objects.all().values("image_url")]
+    return [ x for x in json.loads(open("metric_dict.json").read())]
 
 def get_date_data(target_date):
-    print(get_last_date())
+    print(get_last_logged_date())
     print("Get date data in:\t" + data_location + os.sep + target_date)
     datafiles = os.listdir(data_location + os.sep + target_date)
     first_file = [x for x in datafiles if x.endswith(".graph")][0]
@@ -88,7 +87,7 @@ def add_new_day(target_date): #Date is YYYY-MM-DD format string
         print("ERROR ON DATE: " + target_date + " \t" + str(e))
 
 def data_update(full_date = get_current_date() ):
-   if(get_last_date() != full_date ):
+   if(get_last_logged_date() != full_date ):
        print("Adding day in databaset:\t" + str(full_date))
        add_new_day(full_date)
    else:
@@ -106,7 +105,7 @@ def dataset_update(metric_list):
 # data_update(get_current_date(timedelta(days=1)))
 if __name__ == "__main__":
     # Update IP map
-    ip_map_update(get_last_date())
+    ip_map_update(get_last_logged_date())
 
     #Put new day in db
     data_update()

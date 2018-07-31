@@ -29,8 +29,8 @@ def obtainedCachedPoz():
         readData = json.loads(open(fileName).read())
         return readData
 
-def obtainNetworkStatistics(): #The output from the output of "lncli getnetworkinfo"
-    fileName= open('/etc/django_network_info_path.txt').read().strip()
+def obtainNetworkStatistics(target_config_file): #The output from the output of "lncli getnetworkinfo"
+    fileName= open(target_config_file).read().strip()
     enc='utf-8'
     readData = json.loads(codecs.open(fileName, 'r', enc).read())
     date_logged = os.path.getmtime(fileName)
@@ -39,18 +39,30 @@ def obtainNetworkStatistics(): #The output from the output of "lncli getnetworki
 # Create your views here.
 def index(request):
     try:
-        networkStats,date_logged = obtainNetworkStatistics() #Date_logged is unix timestamp as float
+        networkStats,date_logged = obtainNetworkStatistics('/etc/django_network_info_path.txt') #Date_logged is unix timestamp as float
         #Convert Sat to BTC
         networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
         networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
         networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
 
-        freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        freshness_testnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
     except:
         networkStats={}
         freshness="some time ago"
 
-    return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "last_update" : freshness  })
+    try:
+        mainnetStats,date_logged = obtainNetworkStatistics('/etc/django_network_info_mainnet.txt') #Date_logged is unix timestamp as float
+        #Convert Sat to BTC
+        mainnetStats["total_network_capacity"] = str(float(mainnetStats["total_network_capacity"]) / 10**8) +  " BTC"
+        mainnetStats["max_channel_size"] = str(float(mainnetStats["max_channel_size"]) / 10**8) +" BTC"
+        mainnetStats["avg_channel_size"] = str(mainnetStats["avg_channel_size"] / 10**8) +" BTC"
+
+        freshness_mainnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+    except:
+        networkStats={}
+        freshness="some time ago"
+
+    return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "networkStats_mainnet": list(mainnetStats.items()),"last_update_testnet" : freshness_testnet, "last_update_mainnet" : freshness_mainnet  })
 
 
 def about(request):
@@ -122,7 +134,7 @@ def channels(request):
         return render(request, 'nodes/channels.html', {"channels" : channels_page })
 
 def metrics(request):
-
+        filter_sieve=40
         #Create metrics if none exist
         if(len(Metric.objects.all()) == 0):
             db_put_metrics(os.listdir("media"),"media")
@@ -132,14 +144,26 @@ def metrics(request):
                 data_sets = json.loads(open(single_metric.dataset_url).read())
                 #Scaling (get every 80th datapoint) to ease load on broswer
                 #TODO Consider scaling factor
+                try:
+                    data_labels = json.loads(open(single_metric.dataset_labels).read())
+                    filter_sieve=4 #if has labels, less sieving for preview
+                    data_labels= data_labels[0:int(len(data_labels)/filter_sieve)]
+                    single_metric.labels = json.dumps(data_labels) #Empty file SHOULD raise an exception here
+                except Exception as e:
+                    print("Error on labels load for metric:\t" + single_metric.title + "\t"+ str(e))
 
                 for one_set in data_sets:
-                    one_set["data"] = one_set["data"][::40]
+                    if(hasattr(single_metric,"labels")):
+                        one_set["data"] = one_set["data"][0:int(len(one_set["data"])/filter_sieve)]
+                    else:
+                        one_set["data"] = one_set["data"][::filter_sieve]
 
                 single_metric.json_data = json.dumps(data_sets)
             except Exception as e :
                 print("Error on dataset load for metric:\t" + single_metric.title + "\t"+ str(e))
+                single_metric.dataset_url="" #Trigger image backup
                 single_metric.json_data  = ""
+
         return render(request, 'nodes/metrics.html', {"figures" : metrics})
 
 def metric_detail(request, metricID):
@@ -170,6 +194,7 @@ def metric_detail(request, metricID):
 
         except Exception as e :
             print("Error on dataset load for metric ID:\t" + single_metric.title + "\t"+ str(e))
+            single_metric.dataset_url="" #Trigger image backup
             single_metric.json_data  = "[]"
 
         print(single_metric.dataset_type)
@@ -182,7 +207,7 @@ def nodes_detail(request, nodePubKey,date_logged= ""):
         if(type(date_logged) is int or date_logged == ""):
             date_logged = datetime.fromtimestamp(int(date_logged))
 
-        networkData = obtainNetworkData(date_logged)
+        networkData = network_dattworkData(date_logged)
         if(len(networkData["nodes"].filter( pub_key = nodePubKey)) > 1):
             raise Exception("Multiple nodes found for identifier"+ str(pub_key))
         nodeID = networkData["nodes"].filter( pub_key = nodePubKey).first()

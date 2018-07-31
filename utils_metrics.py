@@ -14,22 +14,25 @@ import numpy as np
 #Returns in order,
 # title, description, dataset_url, dataset_type, dataset_options,parents (if any)
 def get_metric_info(file):
-    if file == "metric_testnet_avg_chan_size.png":
-        return "Average Channel Size", "In Satoshis, how big is your average channel, returned by 'getNetworkInfo'", generate_and_save(file.replace(".png","")),"'line'"
-    elif file == "metric_testnet_network_capacity.png":
-        return "Network capacity", "Total network capacity, in BTC (10^8 or 100 000 000 SAT)", generate_and_save(file.replace(".png","")),"'line'"
-    elif file == "metric_testnet_nr_nodes_chans.png":
-        return "Network presence","Number of nodes with open channels compared to the total number of nodes",generate_and_save(file.replace(".png","")),"'line'"
-    elif file == "metric_testnet_avg_degree.png":
-        return "Average number of channels per node","Showing both the average and the maximum number of channels per node.\nKeep in mind that a significant proportion of nodes do not have open channels", generate_and_save(file.replace(".png","")),"'line'"
-    elif file == "metric_testnet_nodes_with_chans.png":
-        return "Proportion of nodes with channels","The situation is looking more interesting on the mainnet, where the number of channels exceeds the number of nodes, though more data needs to be collected", generate_and_save(file.replace(".png","")),"'line'"
-    elif file == "metric_testnet_locations.png":
-        return "Global distribution of nodes","Based on a location search for the advertised IPs", generate_and_save(file.replace(".png","")),""
-    elif file == "metric_testnet_top_countries.png":
-            return "Countries with most nodes","", generate_and_save(file.replace(".png","")),"'bar'",
+    metric_name =file.replace(".png","")
+    metric_dict = json.loads(open("metric_dict.json").read())
+    if(metric_name in metric_dict ):
+
+        current_metric_dict = metric_dict[metric_name]
+
+        #Fill in some fields with standard values
+        if(not "dataset_type" in current_metric_dict):
+            current_metric_dict["dataset_type"]= "'line'"
+
+        if(not "dataset_url" in current_metric_dict):
+            current_metric_dict["dataset_url"]=  "datasets" + os.sep + metric_name
+        if(not "dataset_labels" in current_metric_dict):
+            current_metric_dict["dataset_labels"]=current_metric_dict["dataset_url"]+'_labels'
+        if(not "image_url" in current_metric_dict):
+            current_metric_dict["image_url"]="media"+ os.sep + metric_name+".png" #TODO Check prefix requirement
+        return metric_dict[metric_name]
     else:
-        return "Network statictic","This show a statistic for the network, more information coming soon","","",""
+        return metric_dict["placeholder"]
 
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
 
@@ -37,7 +40,7 @@ def load_json_file(fileName):
     return json.loads(open(fileName).read())
 
 # TODO Make checks more efficient by not creating anew list of nodes
-def countNodesNoChan(networkGraph):
+def count_nodes_nochans(networkGraph):
 
     nodesWithEdges = [edge["node1_pub"] for edge in networkGraph["edges"]] + [edge["node2_pub"] for edge in networkGraph["edges"]]
     unconnectedNodesCount= 0
@@ -63,7 +66,7 @@ def process_dataset(dataSetPath):
     #Array init
     times_dict={}
     valuesNrNodes=[]
-    valuesNrNodesLonely=[]
+    # valuesNrNodesLonely=[]
     valuesNrEdges=[]
 
     capacity_network=[]
@@ -77,7 +80,7 @@ def process_dataset(dataSetPath):
     print("Got number of folders:" + str(len(folder_list)))
     for folder in folder_list :                                                      #Each day
         folderFiles = os.listdir(dataSetPath+ os.sep + folder)
-        netstateFileList = [x for x in folderFiles if x.endswith(".netinfo")]
+        netstateFileList = [x for x in folderFiles if x.endswith(".netinfo")]       #Each one should have pair ".graph"
         print("Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tout of which " + str(len(netstateFileList)) + " netinfo files")
 
         inGap = False
@@ -88,27 +91,27 @@ def process_dataset(dataSetPath):
             except Exception as e:
                 summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H-%M-%S")
             try:
-                netInfoData = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
+                network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
+                # graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile.replace(".netinfo",".graph"))
                 # netGraphData= load_json_file(prefix+ os.sep + folder + os.sep + statFile.split(".")[0]+ ".graph")
 
                 times_dict[summaryTime]={
-                "valuesNrNodes" : netInfoData["num_nodes"],
-                "valuesNrEdges" : netInfoData["num_channels"],
-                "max_degree" : netInfoData["max_out_degree"],
-                "avg_degree" : netInfoData["avg_out_degree"],
-                "capacity_network" : (float(netInfoData["total_network_capacity"])/10**8), #SAT to BTC conversion
-                "avg_chan_size" : netInfoData["avg_channel_size"]
+                "valuesNrNodes" : network_data["num_nodes"],
+                "valuesNrEdges" : network_data["num_channels"],
+                # "valuesNrNodesLonely" : count_nodes_nochans(graph_data),
+                "max_degree" : network_data["max_out_degree"],
+                "avg_degree" : network_data["avg_out_degree"],
+                "capacity_network" : (float(network_data["total_network_capacity"])/10**8), #SAT to BTC conversion
+                "avg_chan_size" : network_data["avg_channel_size"]
                 }
-                # valuesNrNodesLonely.append(countNodesNoChan(netInfoData))
 
                 if(inGap):           #Gap checking
                     gaps.append((currentGapStart,summaryTime))
                     inGap= False
 
-                # if(netInfoData["num_channels"] > 3100):     #Anomaly hightlight
-                #     print(prefix+ os.sep + folder + os.sep + statFile + "\t\tABNORMAL CHANNEL NUMBER:"+ str(netInfoData["num_channels"]))
+                # if(network_data["num_channels"] > 3100):     #Anomaly hightlight
+                #     print(prefix+ os.sep + folder + os.sep + statFile + "\t\tABNORMAL CHANNEL NUMBER:"+ str(network_data["num_channels"]))
                 #     # input()
-
 
             except Exception as e :
                 error_msg = str(e)
@@ -171,16 +174,25 @@ def generate_and_save(descriptionString, data_set= ""):
         results.append(other_dataset)
 
     elif(descriptionString == "metric_testnet_nodes_with_chans" ):
-        new_dataset = dataset_template.copy()
-        new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]} for x in sorted(times_dict)]
+        # new_dataset = dataset_template.copy()
+        # new_dataset["label"]= "Nodes with channels"
+        # new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]-times_dict[x]["valuesNrNodesLonely"]} for x in sorted(times_dict)]
+        # results.append(new_dataset)
 
+        other_dataset = dataset_template.copy()
+        other_dataset["label"] = "Total nodes"
+        other_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]} for x in sorted(times_dict)]
+        results.append(other_dataset)
         # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
-        results.append(new_dataset)
+
     elif(descriptionString == "metric_testnet_top_countries" ):
             new_dataset = dataset_template.copy()
             country_dict = get_country_node_count()
-            new_dataset["labels"]= [x for x in country_dict if country_dict[x]>0]
-            new_dataset["data"] = [country_dict[x] for x in country_dict if country_dict[x]>0 ] #,valuesNrNodesLonely]]
+
+            #Get a sorted by value key listdir
+            #Reverse it so biggest first
+            new_dataset["labels"]= [x for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0][::-1]
+            new_dataset["data"] = [country_dict[x] for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0 ][::-1] #,valuesNrNodesLonely]]
             results.append(new_dataset)
     # elif(descriptionString == "metric_testnet_locations"):
     #     results =plot_NodesWChannels()
