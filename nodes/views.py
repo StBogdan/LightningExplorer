@@ -48,7 +48,7 @@ def index(request):
         freshness_testnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
     except:
         networkStats={}
-        freshness="some time ago"
+        freshness_testnet="some time ago"
 
     try:
         mainnetStats,date_logged = obtainNetworkStatistics('/etc/django_network_info_mainnet.txt') #Date_logged is unix timestamp as float
@@ -60,7 +60,7 @@ def index(request):
         freshness_mainnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
     except:
         networkStats={}
-        freshness="some time ago"
+        freshness_mainnet="some time ago"
 
     return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "networkStats_mainnet": list(mainnetStats.items()),"last_update_testnet" : freshness_testnet, "last_update_mainnet" : freshness_mainnet  })
 
