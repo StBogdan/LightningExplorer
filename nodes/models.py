@@ -11,9 +11,11 @@ class Metric(models.Model):
     dataset_url  = models.CharField(max_length=250) #Path to file containing the dataset
     image_url    = models.CharField(max_length=50)
     parent       = models.ForeignKey('self', null=True, on_delete=models.SET_NULL)
+    network    = models.CharField(max_length=8)
 
 class Node(models.Model):
     date_logged = models.DateTimeField()    # Time logged
+    network     = models.CharField(max_length=8)
     last_update = models.IntegerField()     # Last_update (Unix timestamp)
 
     pub_key = models.CharField(max_length=67)     # PubKey
@@ -33,13 +35,13 @@ class Address(models.Model):
     date_logged = models.DateTimeField()    # Time logged
     node        = models.ForeignKey('Node', on_delete=models.CASCADE)
     date_logged = models.DateTimeField()    # Time logged
-
     addr    = models.CharField(max_length=100) #May be IPv6
     network = models.CharField(max_length=5)
 
 
 class Channel(models.Model):
     date_logged = models.DateTimeField()    # Time logged
+    network     = models.CharField(max_length=8)
     chan_id     = models.CharField(max_length=20) #id
     #Last_update
     last_update = models.IntegerField()     # Last_update (Unix timestamp)
@@ -63,9 +65,10 @@ class Channel(models.Model):
 # }
 class Node_Policy(models.Model):
     date_logged = models.DateTimeField()    # Time logged
+    network      = models.CharField(max_length=8)
     channel     = models.ForeignKey('Channel', on_delete=models.CASCADE)
     node        = models.ForeignKey('Node', on_delete=models.CASCADE)
-    time_lock_delta     = models.IntegerField() #time_lock_delta
-    min_htlc            = models.IntegerField() #min_htlc
-    fee_base_msat       = models.IntegerField() #fee_base_msat
-    fee_rate_milli_msat = models.IntegerField() #fee_rate_milli_msat
+    time_lock_delta     = models.BigIntegerField() #time_lock_delta
+    min_htlc            = models.BigIntegerField() #min_htlc
+    fee_base_msat       = models.BigIntegerField() #fee_base_msat #Because values of 2^32-1 appear on mainnet policies
+    fee_rate_milli_msat = models.BigIntegerField() #fee_rate_milli_msat

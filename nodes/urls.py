@@ -5,17 +5,31 @@ from . import views
 
 app_name = 'nodes'
 urlpatterns = [
+    #Defaults
     path('', views.index, name='index'),
     path('index', views.index, name='index'),
-    path('visualiser', views.visualiser, name='visualiser'),
-    path('nodes', views.nodes, name='nodes'),
-    path('channels', views.channels, name='channels'),
-    path('metrics', views.metrics, name='metrics'),
-    path('metrics/<slug:metricID>', views.metric_detail, name='metric-detail'),
-    path('search', views.search, name='search'),
+
+    #Visualiser
+    path('<slug:network>/visualiser/<int:date_logged>', views.visualiser, name='visualiser'),
+    path('<slug:network>/visualiser', views.visualiser, name='visualiser'),
+
+    #Nodes
+    path('<slug:network>/nodes/<slug:nodePubKey>/<int:date_logged>', views.nodes_detail, name='node-detail'),
+    path('<slug:network>/nodes/<slug:nodePubKey>', views.nodes_detail, name='node-detail'),
+    path('<slug:network>/nodes', views.nodes, name='nodes'),
+
+    #Channels
+    path('<slug:network>/channels/<slug:chanID>/<int:date_logged>', views.channel_detail, name='channel-detail'),
+    path('<slug:network>/channels/<slug:chanID>', views.channel_detail, name='channel-detail'),
+    path('<slug:network>/channels', views.channels, name='channels'),
+
+    #Metrics
+    path('<slug:network>/metrics', views.metrics, name='metrics'),
+    path('<slug:network>/metrics/<slug:metricID>', views.metric_detail, name='metric-detail'),
+
+    #About & Misc.
     path('about', views.about, name='about'),
-    path('nodes/<slug:nodePubKey>/<int:date_logged>', views.nodes_detail, name='node-detail'),
-    path('channels/<slug:chanID>/<int:date_logged>', views.channels_detail, name='channel-detail'),
-    path('nodes/<slug:nodePubKey>', views.nodes_detail, name='node-detail'),
-    path('channels/<slug:chanID>', views.channels_detail, name='channel-detail'),
+    path('<slug:network>/search', views.search, name='search')
+
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

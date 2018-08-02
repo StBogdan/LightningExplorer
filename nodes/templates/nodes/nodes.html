@@ -27,9 +27,9 @@
         </tr>
       </thead>
       <tbody>
-        {% for currentNode in unconnectedNodes %}
+        {% for currentNode in nodes %}
         <tr>
-          <th scope="row" class="td-small"> <a href="/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
+          <th scope="row" class="td-small"> <a href="/{{network}}/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
           <td class="td-normal">{{ currentNode.alias }}</td>
           <td class="td-normal">{{ currentNode.channels }}</td>
           <td class="td-normal">{{ currentNode.capacity }}</td>

@@ -85,7 +85,7 @@
       <div class="time-box">
         <ul>
           {% for oneDate in data_dates %}
-            <li> <a href="/channels/{{ edgeInfo.chan_id }}/{{ oneDate.date_unix }}"> On {{ oneDate.date_display }} </a> </li>
+            <li> <a href="/{{ network }}/channels/{{ edgeInfo.chan_id }}/{{ oneDate.date_unix }}"> On {{ oneDate.date_display }} </a> </li>
           {% empty %}
             <p> No other dates available </p>
           {% endfor %}
@@ -100,7 +100,7 @@
   <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{ network }}/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
       <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
       <p class="card-text">
         <p> Advertised addresses:</p>

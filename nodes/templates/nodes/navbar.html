@@ -2,21 +2,40 @@
 <nav class="navbar navbar-expand-sm bg-light" style="min-height: 60px;">
   <a class="navbar-brand" href="/index">Lightning Monitor</a>
   <ul class="navbar-nav">
+    {% if network %}
+
     <li class="nav-item">
-      <a class="nav-link" href="/visualiser">Visualise</a>
+      <a class="nav-link" href="/{{network}}/visualiser">Visualise</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/channels">Channels</a>
+      <a class="nav-link" href="/{{network}}/channels">Channels</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/nodes">Nodes</a>
+      <a class="nav-link" href="/{{network}}/nodes">Nodes</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/metrics">Metrics</a>
+      <a class="nav-link" href="/{{network}}/metrics">Metrics</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="/about">About</a>
     </li>
+    {% else %}
+    <li class="nav-item">
+      <a class="nav-link" href="mainnet/visualiser">Visualise</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="mainnet/channels">Channels</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="mainnet/nodes">Nodes</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="mainnet/metrics">Metrics</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/about">About</a>
+    </li>
+    {% endif %}
     <!--
     <li class="nav-item">
       <a class="nav-link" href="/blockchain">Blockchain</a>
@@ -24,7 +43,13 @@
   -->
   </ul>
   <form class=" w-100" action="/search" method="GET" >
-  <input class= "form-control form-control-dark w-100" type="text" name="search_term" placeholder="Double Click on channels or nodes for more information" aria-label="Search" >
-</form>
+  <input class= "form-control form-control-dark w-100" type="text" name="search_term" placeholder="Double Click on channels/nodes for more" aria-label="Search" >
 
+
+</form>
+{% if network %} <div class="nav-item" style="display: flex;
+align-items: center;
+padding-left: .5rem;" >
+ <span class="badge badge-secondary">{{ network }}</span>
+</div> {% endif %}
 </nav>

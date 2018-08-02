@@ -34,18 +34,15 @@
 <div class="box" id="mynetwork"> </div>
 
 <script type="text/javascript">
-  // create an array with nodes
-  var nodes = new vis.DataSet([]);
-  // create an array with edges
-  var edges = new vis.DataSet([]);
 
+  var nodes = new vis.DataSet([]);
+  var edges = new vis.DataSet([]);
   //Get passed network data
   var networkData = {{ jsonData | safe }} ;
   var networkPoz = {{ cachedPoz | safe }} ;
 
   // create an array with edges
   populateGraph(networkData.nodes,networkData.edges,networkPoz);
-
   // create a network
   var container = document.getElementById('mynetwork');
   var data = {
@@ -57,7 +54,7 @@
     layout: { improvedLayout:false,
      },
      physics: {
-       enabled: false, //Enable when starting from scratch
+       enabled: true, //Enable when starting from scratch
        stabilization: false,
        barnesHut: {
          gravitationalConstant: -80000,

@@ -10,12 +10,17 @@ network.on("click", function (params) {
 // Redirect, on double click, to corresponding node or payment channels
   network.on("doubleClick", function (params) {
       params.event = "[original event]";
+      var network = window.location.href.split("/")[3];
+      if(network != "mainnet" && network != "testet"){
+        return;
+      }
+
       inspectMe = this.getNodeAt(params.pointer.DOM);
       console.log('double click event, getNodeAt returns: ' + inspectMe);
       if(inspectMe != null){
         console.log("Double Clicked on a node");
-        console.log("Redirecting to:\t" + "/nodes/" + inspectMe);
-        document.location.href= "/nodes/" + inspectMe ;
+        console.log("Redirecting to:\t" + network+"/nodes/" + inspectMe);
+        document.location.href= "/"+ network + "/nodes/" + inspectMe ;
       }
       else{
         inspectMe3 = params;
@@ -23,7 +28,7 @@ network.on("click", function (params) {
 
         if(params["edges"].length > 0){
           console.log("Double Clicked on edge/channel: " + params["edges"][0] );
-          document.location.href= "/channels/" + params["edges"][0]  ;
+          document.location.href= "/"+ network + "/channels/" + params["edges"][0]  ;
         }
       }
   });

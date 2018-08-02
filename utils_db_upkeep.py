@@ -104,19 +104,22 @@ def dataset_update(metric_list):
 # Update by putting the last day in
 # data_update(get_current_date(timedelta(days=1)))
 if __name__ == "__main__":
-    # Update IP map
-    ip_map_update(get_last_logged_date())
+    print("[Server Upkeep][1/5] Updating IP database")
+    ip_map_update(get_last_logged_date())     # Update IP map
 
-    #Put new day in db
-    data_update()
+    print("[Server Upkeep][2/5] Updating website database")
+    data_update()     #Put new day in db
 
     #Option for reseting metrics
     if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
+        print("[Server Upkeep][Reset] Resetting metrics")
         db_reset_metrics()
 
     #Check metric presence
+    print("[Server Upkeep][3/5] Checking metric presence")
     if(len(get_metric_list()) == 0):
         db_update_metrics()
 
+    print("[Server Upkeep][4/5] Updating datasets for metrics")
     #Update datasets used by metrics
     dataset_update(get_metric_list())

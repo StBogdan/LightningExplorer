@@ -29,10 +29,10 @@
   <tbody>
     {% for channel in channels %}
     <tr>
-      <th scope="row" class="td-normal"> <a href="/channels/{{ channel.chan_id  }}">{{ channel.chan_id }} </a></th>
+      <th scope="row" class="td-normal"> <a href="/{{network}}/channels/{{ channel.chan_id  }}">{{ channel.chan_id }} </a></th>
       <td  class="td-normal">{{ channel.capacity }} Satoshi</td>
-      <td  class="td-small"> <a href="/nodes/{{ channel.node1_pub  }}">{{ channel.node1_pub }}</a></td>
-      <td  class="td-small"> <a href="/nodes/{{ channel.node2_pub  }}">{{ channel.node2_pub }}</a></td>
+      <td  class="td-small"> <a href="/{{network}}/nodes/{{ channel.node1_pub  }}">{{ channel.node1_pub }}</a></td>
+      <td  class="td-small"> <a href="/{{network}}/nodes/{{ channel.node2_pub  }}">{{ channel.node2_pub }}</a></td>
       <!-- <a href="https://live.blockcypher.com/btc-testnet/tx/{{ channel.chan_point }}"> </a> -->
       <td  class="td-small"> {{ channel.chan_point }}</td>
       <td  class="td-small"> {{ channel.last_update }}</td>

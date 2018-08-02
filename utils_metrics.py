@@ -62,26 +62,40 @@ def get_country_node_count():
             country_dict[ip_data[ip]["country"]]=0
     return country_dict
 
+def count_duplicate_edges(graph_data):
+    edges_so_far={}
+    duplicates=0
+    for chan in graph_data["edges"]:
+        if( chan["node1_pub"] in edges_so_far):
+            if( chan["node2_pub"] in edges_so_far[chan["node1_pub"]]):
+                duplicates+=1
+            else:
+                edges_so_far[chan["node1_pub"]].append(chan["node2_pub"])
+        else:
+            edges_so_far[chan["node1_pub"]]=[chan["node2_pub"]]
+    return duplicates
+
+def get_average_chan_size(graph_data):
+    nr_chans = len(graph_data["edges"])
+    chan_size= [int(x["capacity"]) for x in graph_data["edges"]]
+
+    return float(sum(chan_size)/nr_chans)
+
+
 def process_dataset(dataSetPath):
     #Array init
     times_dict={}
-    valuesNrNodes=[]
-    # valuesNrNodesLonely=[]
-    valuesNrEdges=[]
-
-    capacity_network=[]
-    avg_chan_size=[]
     gaps=[]
-    avg_degree=[]
-    max_degree=[]
+
     currentGapStart= None
 
     folder_list=[x for x in os.listdir(dataSetPath) if os.path.isdir(dataSetPath+ os.sep+ x)]  #Just the folders
-    print("Got number of folders:" + str(len(folder_list)))
+    print("[DataSet Process] Got number of folders:" + str(len(folder_list)))
+
     for folder in folder_list :                                                      #Each day
         folderFiles = os.listdir(dataSetPath+ os.sep + folder)
         netstateFileList = [x for x in folderFiles if x.endswith(".netinfo")]       #Each one should have pair ".graph"
-        print("Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tout of which " + str(len(netstateFileList)) + " netinfo files")
+        print("[DataSet Process] Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tof which " + str(len(netstateFileList)) + " netinfo files")
 
         inGap = False
         for statFile in netstateFileList:
@@ -92,17 +106,20 @@ def process_dataset(dataSetPath):
                 summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H-%M-%S")
             try:
                 network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
-                # graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile.replace(".netinfo",".graph"))
-                # netGraphData= load_json_file(prefix+ os.sep + folder + os.sep + statFile.split(".")[0]+ ".graph")
+                graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile.replace(".netinfo",".graph"))
 
                 times_dict[summaryTime]={
-                "valuesNrNodes" : network_data["num_nodes"],
-                "valuesNrEdges" : network_data["num_channels"],
-                # "valuesNrNodesLonely" : count_nodes_nochans(graph_data),
+                "nodes_nr" : network_data["num_nodes"],
+                "chan_nr" : network_data["num_channels"],
+                "nodes_nrLonely" : count_nodes_nochans(graph_data),
                 "max_degree" : network_data["max_out_degree"],
                 "avg_degree" : network_data["avg_out_degree"],
                 "capacity_network" : (float(network_data["total_network_capacity"])/10**8), #SAT to BTC conversion
-                "avg_chan_size" : network_data["avg_channel_size"]
+                "duplicate_channels": count_duplicate_edges(graph_data),
+                "chan_avg_capacity": get_average_chan_size(graph_data),
+                "avg_chan_size" : network_data["avg_channel_size"],
+                "min_chan_size" : network_data["min_channel_size"],
+                "max_chan_size" : network_data["max_channel_size"]
                 }
 
                 if(inGap):           #Gap checking
@@ -117,19 +134,19 @@ def process_dataset(dataSetPath):
                 error_msg = str(e)
                 if(str(e).startswith("Expecting value: line 1 column 1 (char 0)")):
                     error_msg ="Empty file, this is YOUR fault"
-                print("On processing\t "+ dataSetPath+ os.sep + folder + os.sep + statFile + " Error:\t"+ error_msg)
+                print("[DataSet Process]  On processing\t "+ os.sep + folder + os.sep + statFile + " Error:\t"+ error_msg)
                 if(not inGap):
                     inGap= True
                     currentGapStart = summaryTime
                 pass
-                # valuesNrNodesLonely
+                # nodes_nrLonely
     return times_dict, gaps
 
 
 def generate_and_save(descriptionString, data_set= ""):
     if(data_set == ""):
         data_set = process_dataset(data_location)
-    print("Generating dataset for:\t"+ descriptionString )
+    print("[DataSet Gen] Generating dataset for:\t"+ descriptionString )
     times_dict, gaps = data_set
     # str_dates = [x.strftime("%Y-%m-%d %H:%M:%S") for x in times]
     resultFilePath= "datasets" + os.sep + descriptionString
@@ -140,10 +157,20 @@ def generate_and_save(descriptionString, data_set= ""):
     results = []
 
     if(descriptionString == "metric_testnet_avg_chan_size"):
-        new_dataset = dataset_template
-        new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["avg_chan_size"]} for x in sorted(times_dict)]
-        # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avg_chan_size)]
-        results.append(new_dataset)
+        avg_dataset = dataset_template.copy() #Avg chan sizes
+        avg_dataset["label"] = "Average channel size"
+        avg_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["avg_chan_size"]} for x in sorted(times_dict)]
+
+        min_dataset = dataset_template.copy()   #Min chan sizes
+        min_dataset["label"] = "Smallest capacity"
+        min_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["min_chan_size"]} for x in sorted(times_dict)]
+
+        max_dataset = dataset_template.copy() #Max chan sizes
+        max_dataset["label"] = "Largest capacity"
+        max_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["max_chan_size"]} for x in sorted(times_dict)]
+        results.append(max_dataset)
+        results.append(avg_dataset)
+        results.append(min_dataset)
 
     elif(descriptionString == "metric_testnet_network_capacity" ):
         new_dataset = dataset_template.copy()
@@ -154,8 +181,8 @@ def generate_and_save(descriptionString, data_set= ""):
         results.append(new_dataset)
     elif(descriptionString == "metric_testnet_nr_nodes_chans" ):
         new_dataset = dataset_template.copy()
-        new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]} for x in sorted(times_dict)]
-        # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
+        new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["nodes_nr"]} for x in sorted(times_dict)]
+        # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,nodes_nr)] #,nodes_nrLonely]]
         results.append(new_dataset)
     elif(descriptionString == "metric_testnet_avg_degree" ):
         new_dataset = dataset_template.copy()
@@ -174,16 +201,27 @@ def generate_and_save(descriptionString, data_set= ""):
         results.append(other_dataset)
 
     elif(descriptionString == "metric_testnet_nodes_with_chans" ):
-        # new_dataset = dataset_template.copy()
-        # new_dataset["label"]= "Nodes with channels"
-        # new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]-times_dict[x]["valuesNrNodesLonely"]} for x in sorted(times_dict)]
-        # results.append(new_dataset)
+        new_dataset = dataset_template.copy()
+        new_dataset["label"]= "Nodes with channels"
+        new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["nodes_nr"]-times_dict[x]["nodes_nrLonely"]} for x in sorted(times_dict)]
+        results.append(new_dataset)
 
         other_dataset = dataset_template.copy()
         other_dataset["label"] = "Total nodes"
-        other_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["valuesNrNodes"]} for x in sorted(times_dict)]
+        other_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["nodes_nr"]} for x in sorted(times_dict)]
         results.append(other_dataset)
-        # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,valuesNrNodes)] #,valuesNrNodesLonely]]
+        # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,nodes_nr)] #,nodes_nrLonely]]
+
+    elif(descriptionString == "metric_testnet_channels" ):
+            new_dataset = dataset_template.copy()
+            new_dataset["label"]= "Channels"
+            new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["chan_nr"]} for x in sorted(times_dict)]
+            results.append(new_dataset)
+
+            other_dataset = dataset_template.copy()
+            other_dataset["label"] = "Duplicate channels"
+            other_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["duplicate_channels"]} for x in sorted(times_dict)]
+            results.append(other_dataset)
 
     elif(descriptionString == "metric_testnet_top_countries" ):
             new_dataset = dataset_template.copy()
@@ -192,23 +230,24 @@ def generate_and_save(descriptionString, data_set= ""):
             #Get a sorted by value key listdir
             #Reverse it so biggest first
             new_dataset["labels"]= [x for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0][::-1]
-            new_dataset["data"] = [country_dict[x] for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0 ][::-1] #,valuesNrNodesLonely]]
+            new_dataset["data"] = [country_dict[x] for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0 ][::-1] #,nodes_nrLonely]]
             results.append(new_dataset)
     # elif(descriptionString == "metric_testnet_locations"):
     #     results =plot_NodesWChannels()
     else:
+        print("[DataSet Gen] No generation method for:\t" +descriptionString)
         return "" #Don't write anything to anywhere is no known metric requested
 
 
     # (Create and) write result to file
     for data_set in results:
         if("labels" in data_set ): #Assume one set of labels per metric
-            print("Writing labels to file:\t" + resultFilePath+ "_labels")
+            print("[DataSet Gen] Writing labels to file:\t" + resultFilePath+ "_labels")
             labels_file = open(resultFilePath+"_labels","w+")
             labels_file.write(json.dumps(data_set["labels"]))
             labels_file.close()
 
-    print("Writing dataset to file:\t" + resultFilePath)
+    print("[DataSet Gen] Writing dataset to file:\t" + resultFilePath)
     results_file = open(resultFilePath,"w+")
     results_file.write(json.dumps(results))
     results_file.close()

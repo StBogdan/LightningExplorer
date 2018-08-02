@@ -39,6 +39,12 @@
          "dataset_type":"'bar'",
          "dataset_options" : ""
 },
+"metric_testnet_channels":{
+        "title": "Number of channels",
+        "description": "Shows the number of payment channels seen in the network",
+        "dataset_type": "'line'",
+        "dataset_options": "options: { scales: { xAxes: [{ type: 'time' }] }}"
+      },
 "placeholder":{
         "title": "Network statictic",
         "description": "This show a statistic for the network, more information coming soon",
