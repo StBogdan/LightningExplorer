@@ -12,9 +12,10 @@ class Metric(models.Model):
     image_url    = models.CharField(max_length=50)
     parent       = models.ForeignKey('self', null=True, on_delete=models.SET_NULL)
     network    = models.CharField(max_length=8)
+    index_together = ["pub_date", "deadline"]
 
 class Node(models.Model):
-    date_logged = models.DateTimeField()    # Time logged
+    date_logged = models.DateTimeField(db_index=True)    # Time logged
     network     = models.CharField(max_length=8)
     last_update = models.IntegerField()     # Last_update (Unix timestamp)
 
@@ -32,7 +33,7 @@ class Node(models.Model):
 
 # [{'addr': '127.0.0.1:9735', 'network': 'tcp'}]
 class Address(models.Model):
-    date_logged = models.DateTimeField()    # Time logged
+    date_logged = models.DateTimeField(db_index=True)    # Time logged
     node        = models.ForeignKey('Node', on_delete=models.CASCADE)
     date_logged = models.DateTimeField()    # Time logged
     addr    = models.CharField(max_length=100) #May be IPv6
@@ -40,7 +41,7 @@ class Address(models.Model):
 
 
 class Channel(models.Model):
-    date_logged = models.DateTimeField()    # Time logged
+    date_logged = models.DateTimeField(db_index=True)    # Time logged
     network     = models.CharField(max_length=8)
     chan_id     = models.CharField(max_length=20) #id
     #Last_update

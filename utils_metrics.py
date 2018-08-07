@@ -13,8 +13,11 @@ import numpy as np
 
 #Returns in order,
 # title, description, dataset_url, dataset_type, dataset_options,parents (if any)
-def get_metric_info(file):
-    metric_name =file.replace(".png","")
+def get_data_location(network):
+    data_location= {"testnet": open('/etc/lndmon_data_location.txt').read().strip() , "mainnet":  open('/etc/lndmon_data_location_mainnet.txt').read().strip()}
+    return data_location[network]
+
+def get_metric_info(metric_name,network):
     metric_dict = json.loads(open("metric_dict.json").read())
     if(metric_name in metric_dict ):
 
@@ -25,14 +28,17 @@ def get_metric_info(file):
             current_metric_dict["dataset_type"]= "'line'"
 
         if(not "dataset_url" in current_metric_dict):
-            current_metric_dict["dataset_url"]=  "datasets" + os.sep + metric_name
+            current_metric_dict["dataset_url"]=  "datasets" + os.sep + network + os.sep + metric_name
         if(not "dataset_labels" in current_metric_dict):
             current_metric_dict["dataset_labels"]=current_metric_dict["dataset_url"]+'_labels'
         if(not "image_url" in current_metric_dict):
-            current_metric_dict["image_url"]="media"+ os.sep + metric_name+".png" #TODO Check prefix requirement
+            current_metric_dict["image_url"]="media"+ os.sep + network + os.sep + metric_name+".png" #TODO Check prefix requirement
+        current_metric_dict["network"]= network
         return metric_dict[metric_name]
     else:
-        return metric_dict["placeholder"]
+        newMetric = metric_dict["placeholder"]
+        newMetric["network"]=network
+        return newMetric
 
 data_location = open('/etc/lndmon_data_location.txt').read().strip()
 
@@ -143,20 +149,20 @@ def process_dataset(dataSetPath):
     return times_dict, gaps
 
 
-def generate_and_save(descriptionString, data_set= ""):
+def generate_and_save(descriptionString,network, data_set= ""):
     if(data_set == ""):
-        data_set = process_dataset(data_location)
-    print("[DataSet Gen] Generating dataset for:\t"+ descriptionString )
+        data_set = process_dataset(get_data_location(network))
+    print("[DataSet Gen] Generating dataset for:\t"+ descriptionString +" network:" + network )
     times_dict, gaps = data_set
     # str_dates = [x.strftime("%Y-%m-%d %H:%M:%S") for x in times]
-    resultFilePath= "datasets" + os.sep + descriptionString
+    resultFilePath= "datasets" + os.sep + network + os.sep + descriptionString
 
     dataset_template =  {"label": descriptionString, "data": []}
     dataset_template["backgroundColor"]= 'rgba(255, 159, 64, 0.2)'
     dataset_template["borderColor"]=  'rgba(255, 159, 64, 1)'
     results = []
 
-    if(descriptionString == "metric_testnet_avg_chan_size"):
+    if(descriptionString == "metric_avg_chan_size"):
         avg_dataset = dataset_template.copy() #Avg chan sizes
         avg_dataset["label"] = "Average channel size"
         avg_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["avg_chan_size"]} for x in sorted(times_dict)]
@@ -172,19 +178,19 @@ def generate_and_save(descriptionString, data_set= ""):
         results.append(avg_dataset)
         results.append(min_dataset)
 
-    elif(descriptionString == "metric_testnet_network_capacity" ):
+    elif(descriptionString == "metric_network_capacity" ):
         new_dataset = dataset_template.copy()
         # print(list(times_dict))
         # raise Exception("STOP! Checked out these dates")
         new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["capacity_network"]} for x in sorted(times_dict)]
         # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,capacity_network)]
         results.append(new_dataset)
-    elif(descriptionString == "metric_testnet_nr_nodes_chans" ):
+    elif(descriptionString == "metric_nr_nodes_chans" ):
         new_dataset = dataset_template.copy()
         new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["nodes_nr"]} for x in sorted(times_dict)]
         # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,nodes_nr)] #,nodes_nrLonely]]
         results.append(new_dataset)
-    elif(descriptionString == "metric_testnet_avg_degree" ):
+    elif(descriptionString == "metric_avg_degree" ):
         new_dataset = dataset_template.copy()
         new_dataset["label"] = "Average node degree"
         new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["avg_degree"]} for x in sorted(times_dict)]
@@ -200,7 +206,7 @@ def generate_and_save(descriptionString, data_set= ""):
         # other_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,max_degree)]
         results.append(other_dataset)
 
-    elif(descriptionString == "metric_testnet_nodes_with_chans" ):
+    elif(descriptionString == "metric_nodes_with_chans" ):
         new_dataset = dataset_template.copy()
         new_dataset["label"]= "Nodes with channels"
         new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["nodes_nr"]-times_dict[x]["nodes_nrLonely"]} for x in sorted(times_dict)]
@@ -212,7 +218,7 @@ def generate_and_save(descriptionString, data_set= ""):
         results.append(other_dataset)
         # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,nodes_nr)] #,nodes_nrLonely]]
 
-    elif(descriptionString == "metric_testnet_channels" ):
+    elif(descriptionString == "metric_channels" ):
             new_dataset = dataset_template.copy()
             new_dataset["label"]= "Channels"
             new_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["chan_nr"]} for x in sorted(times_dict)]
@@ -223,7 +229,7 @@ def generate_and_save(descriptionString, data_set= ""):
             other_dataset["data"] = [ {"x": x.strftime("%Y-%m-%d %H:%M:%S"), "y": times_dict[x]["duplicate_channels"]} for x in sorted(times_dict)]
             results.append(other_dataset)
 
-    elif(descriptionString == "metric_testnet_top_countries" ):
+    elif(descriptionString == "metric_top_countries" ):
             new_dataset = dataset_template.copy()
             country_dict = get_country_node_count()
 
@@ -232,10 +238,10 @@ def generate_and_save(descriptionString, data_set= ""):
             new_dataset["labels"]= [x for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0][::-1]
             new_dataset["data"] = [country_dict[x] for x in sorted(country_dict, key=country_dict.get) if country_dict[x]>0 ][::-1] #,nodes_nrLonely]]
             results.append(new_dataset)
-    # elif(descriptionString == "metric_testnet_locations"):
+    # elif(descriptionString == "metric_locations"):
     #     results =plot_NodesWChannels()
     else:
-        print("[DataSet Gen] No generation method for:\t" +descriptionString)
+        print("[DataSet Gen] No generation method for:\t" +descriptionString + " network: " + network)
         return "" #Don't write anything to anywhere is no known metric requested
 
 

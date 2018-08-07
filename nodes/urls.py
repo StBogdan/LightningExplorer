@@ -27,6 +27,12 @@ urlpatterns = [
     path('<slug:network>/metrics', views.metrics, name='metrics'),
     path('<slug:network>/metrics/<slug:metricID>', views.metric_detail, name='metric-detail'),
 
+    #Active monitoring
+    path('active', views.active_dashboard, name='active_dashboard'),
+    path('active/<slug:node_pubkey>', views.active_node_detail, name='active_dashboard'),
+    path('active/<slug:node_pubkey>/channels/<slug:chan_id>', views.active_channel_detail, name='active_dashboard'),
+
+
     #About & Misc.
     path('about', views.about, name='about'),
     path('<slug:network>/search', views.search, name='search')

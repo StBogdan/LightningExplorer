@@ -18,7 +18,8 @@
 <body>
 {% include "nodes/navbar.html" %}
 <div class="index-title jumbotron-fluid" style="font-family: "Titillium Web", Arial, sans-serif;">
-<h1>{{network}}/Metrics</h1>
+<h1>{{network}} / Metrics</h1>
+  <p class="lead"> Data measured by our nodes running on the Bitcoin {{network}}.<br> Click on "Details" to see individual metric pages, containing detailed descriptions and more details on what is being shown</p>
 </div> <!-- Intro -->
 
 
@@ -40,11 +41,11 @@
     });
     </script>
     {% else %}
-      <img class="card-img-top" src="{{ indivMetric.image_url }}" alt="{{ indivMetric.description }}">
+      <img class="card-img-top" src="/{{ indivMetric.image_url }}" alt="{{ indivMetric.description }}">
     {% endif %}
     <div class="card-body">
-      <h5 class="card-title">{{ indivMetric.title }} <a href="/{{network}}/metrics/{{indivMetric.id}}" class="btn btn-outline-info btn-sm float-right">Details</a></h5></h5>
-      <p class="card-text">{{ indivMetric.description }} </p>
+      <h5 class="card-title">{{ indivMetric.title }} <a href="/{{network}}/metrics/{{indivMetric.id}}" class="btn btn-outline-info btn-sm float-right">Details</a></h5>
+      <!-- <p class="card-text">{{ indivMetric.description }} </p> -->
     </div>
   </div>
 {% empty %}

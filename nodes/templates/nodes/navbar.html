@@ -49,7 +49,7 @@
 </form>
 {% if network %} <div class="nav-item" style="display: flex;
 align-items: center;
-padding-left: .5rem;" >
- <span class="badge badge-secondary">{{ network }}</span>
+padding-left: .5rem;" > <a href="{% if network == "testnet" %}/mainnet/{% else %}/testnet/{%endif%}metrics" >
+ <span class="badge badge-secondary">{{ network }}</span></a>
 </div> {% endif %}
 </nav>

@@ -28,7 +28,7 @@
   <div class="card-body">
     <p class="card-text"> {{ metric.description }}</p>
   </div>
-</div> <!-- Card -->
+</div> <!-- Title Card -->
 {% if metric.dataset_url %}
 <canvas id="{{ metric.dataset_url }}"></canvas>
 <script>
@@ -46,7 +46,7 @@ var chart = new Chart(ctx, {
 <!-- Image fallback -->
   <img class="card-img-top" src="/{{ metric.image_url }}" alt="{{ metric.description }}">
 {% endif %}
-</div> <!-- Container -->
+
 
 <div class="card-columns">
 {% for indivMetric in related_metrics %}
@@ -83,9 +83,17 @@ var chart = new Chart(ctx, {
     </div>
   </div>
 {% empty %}
-      <li>View more metrics on at <a href="/{{network}}//metrics">Metrics</a> </li>
+</div> <!-- Card column-->
+<div class="card lg-6">
+    <h5 class="card-header card-title">View more metrics on at <a href="/{{network}}/metrics">Metrics</a> </h5>
+</div>
 {% endfor %}
 </div>
+
+
+
+</div> <!-- Container -->
+
 
 
 

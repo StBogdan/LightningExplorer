@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from nodes.models import *
 from datetime import datetime
 from utils_db_upkeep import *
-
+import thunder as thunder
 
 import json
 import codecs
@@ -115,7 +115,7 @@ def visualiser(request,network):
     n,e = prepareGraphData(networkData["nodes"],networkData["edges"])
     print("Data filtered and prepared ")
     # print( [vars(x) for x in networkData["edges"]])
-    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz) })
+    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network })
 
 def prepareForPassing(nodeEntries,edgeEntries):
     edgeList = []
@@ -153,28 +153,31 @@ def prepareGraphData(nodeEntries,edgeEntries):
 
 def nodes(request,network):
         [networkData,unconnectedNodes] = filterNodes(obtainNetworkData(get_last_logged_date(network),network))
-        paginator_ucn = Paginator([db2json_node(x) for x in networkData["nodes"]], 15)
+        paginator_ucn = Paginator(networkData["nodes"], 15)
+        print(len(networkData["nodes"]))
 
         page= request.GET.get('page')
         nodes_page = paginator_ucn.get_page(page)
+        print(nodes_page)
+        nodes_page.object_list = [db2json_node(x) for x in nodes_page.object_list]
+
         return render(request, 'nodes/nodes.html', {"nodes" : nodes_page, "network":network})
 
 def channels(request,network):
         graphData = obtainNetworkData(get_last_logged_date(network),network)
-        print(graphData)
-        all_edges = [db2json_edge(x) for x in graphData["edges"]]
-        paginator_edges = Paginator(all_edges, 15)
+        # print(graphData)
+        paginator_edges = Paginator(graphData["edges"], 15)
 
         page= request.GET.get('page')
         channels_page = paginator_edges.get_page(page)
+        channels_page.object_list = [db2json_edge(x) for x in channels_page.object_list]
+
         return render(request, 'nodes/channels.html', {"channels" : channels_page , "network":network})
 
 def metrics(request,network):
         filter_sieve=1
-        #Create metrics if none exist
-        if(len(Metric.objects.all()) == 0):
-            db_put_metrics(os.listdir("media"),"media")
-        metrics = Metric.objects.all()
+
+        metrics = Metric.objects.filter(network=network)
         for single_metric in metrics:
             try:
                 data_sets = json.loads(open(single_metric.dataset_url).read())
@@ -392,3 +395,46 @@ def search(request,network):
     #         return render(request,"search.html",{"node":status})
     # else:
     #         return render(request,"search.html",{})
+
+
+def get_node_details_api(node_dict):
+    try:
+        stub,macaroon = thunder.startServerConnection(node_dict)
+        result={}
+        result["info"] =    thunder.get_info_dict(stub,macaroon)
+        result["channels"]= thunder.getCurrentChannels(stub,macaroon)
+
+        return result
+    except Exception as e :
+        return "Data not available, error:\t"+str(e)
+
+
+
+def active_dashboard(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        # Redirect to a success page.
+        own_nodes = thunder.getServerConfigs()
+        print(own_nodes)
+        node_results=[]
+        for node in own_nodes:
+            node_results.append(get_node_details_api(node))
+
+        return render(request, 'nodes/active.html', {"node_detail_list": node_results})
+    else:
+        # Return an 'invalid login' error message.
+        return Http404()
+
+
+
+def active_node_detail(request,node_pubkey):
+    return render(request, 'nodes/active.html', {})
+
+def active_channel_detail(request,node_pubkey,chan_id):
+    return render(request, 'nodes/active.html', {})
+
+
+from django.contrib.auth import authenticate, login
