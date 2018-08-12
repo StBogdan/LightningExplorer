@@ -68,7 +68,10 @@
      },
      edges : {
        color : {
-         opacity:0.4
+         opacity:0.5
+       },
+       smooth:{
+         type:'dynamic'
        }
      },
      nodes: {
@@ -85,7 +88,7 @@
   var network = new vis.Network(container, data, options);
 
   //Disable smooth curvers for better performance
-  network.setOptions({edges:{smooth:{type:'dynamic'}}});
+  // network.setOptions({edges:{smooth:{type:'dynamic'}}});
 
 </script>
 <script src="{% static "nodes/visUtilsPost.js" %}"></script>

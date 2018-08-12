@@ -12,16 +12,20 @@
 <body>
 {% include "nodes/navbar.html" %}
 <div class="container" style="width: 95%; padding-bottom:5vh;">
-Active dashboard
+  <div class="index-title jumbotron-fluid">
+  <h1>Lightning⚡ Node Active Dashboard</h1>
+    <p class="lead"> View the status of your own nodes</p>
+  </div> <!-- Intro -->
 
 {% for node in node_detail_list %}
-<div class="card ">
+<div class="card">
   {% if node.info.identity_pubkey %}
   <div class="card-header">
-      <h5 class="card-title">Alias: {{node.info.alias}}  {{node.info.identity_pubkey}}       <a href="/active/{{node.info.identity_pubkey}} " class="btn btn-outline-info btn-sm float-right">Single View</a></h5></h5>
+      <h5 class="card-title">Node: {{node.info.alias}}  <a href="/active/{{node.info.identity_pubkey}} " class="btn btn-outline-info btn-sm float-right">Single View</a></h5>
+      <h8 class="card-subtitle mb-2 text-muted">  {{node.info.identity_pubkey}}</h8>
     <ul class="nav nav-tabs card-header-tabs pull-right"  id="node_details_navs" role="tablist">
       <li class="nav-item">
-       <a class="nav-link" id="details-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#details-{{node.info.identity_pubkey}}" role="tab" aria-controls="details" aria-selected="false">Details</a>
+       <a class="nav-link active" id="details-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#details-{{node.info.identity_pubkey}}" role="tab" aria-controls="details" aria-selected="true">Details</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="channels-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#channels-{{node.info.identity_pubkey}}" role="tab" aria-controls="channels" aria-selected="false">Channels</a>
@@ -30,31 +34,93 @@ Active dashboard
         <a class="nav-link" id="peers-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#peers-{{node.info.identity_pubkey}}" role="tab" aria-controls="peers" aria-selected="false">Peers</a>
       </li>
       <li class="nav-item active">
-       <a class="nav-link active" id="raw-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#raw-{{node.info.identity_pubkey}}" role="tab" aria-controls="raw" aria-selected="true">Raw response</a>
+       <a class="nav-link" id="raw-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#raw-{{node.info.identity_pubkey}}" role="tab" aria-controls="raw" aria-selected="false">Raw response</a>
       </li>
     </ul>
+  </div> <!-- Card header -->
+<div class="card-body">
+<div class="tab-content" id="node_detail_content"> <!-- Tabbed content -->
+
+<div class="tab-pane show active" id="details-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="details-tab-{{node.info.identity_pubkey}}"> <!-- Content Details-->
+  <h5>
+      {% for chain in node.info.chains %}
+      <span class="badge badge-pill badge-info">{{chain}}</span>
+      {% endfor %}
+      <span class="badge badge-pill {% if node.info.testnet %} badge-warning">Testnet{% else %} badge-success">Mainnet{%endif%}</span>
+      <span class="badge badge-pill {% if node.info.synced_to_chain %} badge-success">Synced{% else %} badge-fail">Not synced{%endif%}</span>
+    </h5>
+    <h6 class="card-subtitle mb-2">Channels: {{ node.info.num_active_channels}} &emsp; Pending Channels: {{ node.info.num_pending_channels}} &emsp; Peers: {{ node.info.num_peers}} </h6><br>
+    <h6 class="card-subtitle mb-2"> Collected Fees (in Sathosi)<br> Today: {{ node.fees.day_fee_sum}} &emsp; Weekly: {{node.fees.week_fee_sum}} &emsp; Montly: {{node.fees.month_fee_sum}} </h6><br>
+  <h6 class="card-subtitle mb-2 text-muted"> Available URI(s) </h6>
+
+  {% for uri in  node.info.uris%}
+  <div class="input-group">
+   <input type="text" class="form-control uneditable-input"
+       value="{{uri}}" readonly>
+ </div><br>
+ {% endfor %}
+  <h6 class="card-subtitle mb-2 text-muted"> LND Version: {{ node.info.version}} </h6>
+
+</div> <!-- Details-->
+
+
+<div class="tab-pane fade" id="channels-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="channels-tab-{{node.info.identity_pubkey}}"> <!-- Content Channels-->
+  {% for chanInfo in node.channels %}
+  <div class="card mx-auto"> <!-- Channel card -->
+    <div class="card-body">
+      <h5 class="card-title">Channel ID: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/channels/{{ chanInfo.chan_id }}">
+        {{ chanInfo.chan_id }} </a>
+
+    <span class="badge badge-pill {% if chanInfo.active %} badge-success">Active {% else %} badge-warning">Offline{%endif%}</span>
+    <span class="badge badge-pill {% if chanInfo.private %} badge-dark">Private {% else %} badge-info">Public{%endif%}</span>
+      <h6 class="card-subtitle mb-2 text-muted"> PubKey: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/nodes/{{ chanInfo.remote_pubkey }}">  {{ chanInfo.remote_pubkey}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted"> Capacity: {{ chanInfo.capacity}} SAT </h6>
+      <h6 class="card-subtitle mb-2 text-muted"> Channel Point: {{ chanInfo.channel_point}} SAT </h6>
+      <h6 class="card-subtitle mb-2 text-muted"> Number of updates: {{ chanInfo.num_updates}}</h6>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {% widthratio chanInfo.local_balance chanInfo.capacity 100 %}%;" aria-valuenow="{{ chanInfo.local_balance}}" aria-valuemin="0" aria-valuemax="{{ chanInfo.capacity}}">{{ chanInfo.local_balance}}</div>
+        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio chanInfo.remote_balance chanInfo.capacity 100 %}%" aria-valuenow="{{ chanInfo.remote_balance}}" aria-valuemin="0" aria-valuemax="{{ chanInfo.capacity}}">{{ chanInfo.remote_balance}}</div>
+    </div><br>
+      <h6 class="card-subtitle mb-2 text-muted"> Balance: {{ chanInfo.local_balance}}/{{chanInfo.remote_balance}} SAT &emsp; Traffic: {{ chanInfo.total_satoshis_sent}}/{{chanInfo.total_satoshis_received}} SAT </h6>
+    </div>
   </div>
-  <div class="card-body">
-   <div class="tab-content" id="node_detail_content">
-        <div class="tab-pane fade" id="details-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="details-tab-{{node.info.identity_pubkey}}">TODO Display general node stats</div>
-  <div class="tab-pane fade" id="channels-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="channels-tab-{{node.info.identity_pubkey}}"> {{node.channels}}</div>
-  <div class="tab-pane fade" id="peers-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="peers-tab-{{node.info.identity_pubkey}}">
-  TODO Display peers here
+  {% endfor %}
+</div> <!-- Channels-->
 
+<div class="tab-pane fade" id="peers-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="peers-tab-{{node.info.identity_pubkey}}">  <!-- Content Peers-->
+  {% for peer in node.peers%}
+  <div class="card mx-auto"> <!-- Peer card -->
+    <div class="card-body"> <!-- Card body-->
+    <h5>Direction: <span class="badge badge-pill {% if peer.inbout %} badge-success">Inbound {% else %} badge-info">Outbound{% endif %} </span></h5>
+    <h6 class="card-subtitle mb-2 "> Pubkey: <input type="text" class="form-control uneditable-input"
+        value="{{peer.pub_key}}" readonly></h6>
+    <h6 class="card-subtitle mb-2 "> Address: <input type="text" class="form-control uneditable-input"
+        value="{{peer.address}}" readonly></h6>
+    <h6>URI<div class="input-group">
+     <input type="text" class="form-control uneditable-input"
+         value="{{peer.pub_key}}@{{peer.address}} " readonly>
+   </div></h6>
+    <h6 class="card-subtitle mb-2 text-muted"> Byte traffic: {{ peer.bytes_sent}}/{{peer.sat_recv}} &emsp;Satoshi traffic: {{ peer.sat_sent}}/{{peer.sat_recv}} </h6>
+    <h6 class="card-subtitle mb-2 text-muted"> Pingtime: {{peer.ping_time}} ms  </h6>
+  </div>  <!-- Card body-->
+  </div> <!-- Peer card-->
 
-</div>
-  <div class="tab-pane show active" id="raw-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="raw-tab-{{node.info.identity_pubkey}}">
-  {{ node }}</div>
-      </div>
+  {% endfor %}
+</div> <!-- Peers-->
 
-  </div>
+<div class="tab-pane fade" id="raw-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="raw-tab-{{node.info.identity_pubkey}}"> <!-- Content Raw-->
+  {{ node }}
+    </div> <!-- Raw -->
+  </div>  <!-- Tabbed content -->
+</div> <!-- Card body -->
   {% else %}
-    <div class="card-header"> No data for this node </div>
+
+    <div class="card-header">   <h5 class="card-title">Node: {{node.info_given.Alias}}</h5>
+      <h8 class="card-subtitle mb-2 text-muted"> Data not available</h8>
+    </div>
   {% endif %}
 </div> <!-- Node card-->
 {% endfor %}
-
-
 
 </div> <!-- Page container -->
 <!-- Bootstrap scripts -->

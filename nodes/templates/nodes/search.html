@@ -48,7 +48,7 @@
 <div class="container" style="width: 90%;">
 <h2> Channels </h2>
 {% for chanInfo in foundChannels %}
-<div class="card mx-auto">
+<div class="card mx-auto"> <!-- Channel card -->
   <div class="card-body">
     <h5 class="card-title">Channel ID: <a href="/{{network}}/channels/{{ chanInfo.chan_id }}"> {{ chanInfo.chan_id }} </a> </h5>
     <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/{{network}}/nodes/{{ chanInfo.node1_pub }}">  {{ chanInfo.node1_pub}}</a> </h6>

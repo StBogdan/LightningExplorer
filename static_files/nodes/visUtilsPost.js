@@ -11,7 +11,7 @@ network.on("click", function (params) {
   network.on("doubleClick", function (params) {
       params.event = "[original event]";
       var network = window.location.href.split("/")[3];
-      if(network != "mainnet" && network != "testet"){
+      if(network != "mainnet" && network != "testnet"){
         return;
       }
 

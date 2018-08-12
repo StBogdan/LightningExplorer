@@ -15,7 +15,9 @@ from nodes.models import *
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
 # django.setup()
 # from nodes.models import *
-data_location= {"testnet": open('/etc/lndmon_data_location.txt').read().strip() , "mainnet":  open('/etc/lndmon_data_location_mainnet.txt').read().strip()}
+
+from utils_config import *
+data_location= {"testnet": site_config["lndmon_data_location"] , "mainnet":  site_config["lndmon_data_location_mainnet"]}
 
 
 def db_put_metrics(metric_list):
@@ -81,7 +83,7 @@ def get_date_data(target_date,network):
 def ip_map_update(target_date,network):
     file_fpath = get_date_data(target_date,network)
     ip_poz_dict = ip.create_ip_dict(file_fpath)
-    results_file = open("datasets/ip_location_data","w+")
+    results_file = open("datasets"+ os.sep + network + os.sep + "ip_location_data","w+")
     results_file.write(json.dumps(ip_poz_dict))
     results_file.close()
 
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     if(len(Metric.objects.all()) == 0):
         print("[Server Upkeep][3/5] No metrics found, re-creating DB entries")
         db_update_metrics()
-    #
-    # print("[Server Upkeep][4/5] Updating datasets for metrics")
-    # #Update datasets used by metrics
-    # dataset_update(get_metric_list())
+        
+    print("[Server Upkeep][4/5] Updating datasets for metrics")
+    #Update datasets used by metrics
+    dataset_update(get_metric_list())

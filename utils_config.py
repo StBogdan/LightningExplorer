@@ -1,5 +1,10 @@
 import os
 from datetime import datetime
+import json
+import codecs
+
+
+site_config = json.loads(codecs.open("/etc/django_config.txt", 'r').read())
 
 def fix_date_string(folderPath = os.getcwd()):
     for fileName in os.listdir(folderPath):

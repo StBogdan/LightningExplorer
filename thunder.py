@@ -14,6 +14,8 @@ from  terminal_colours import *
 from pickleUtils import save_obj,load_obj
 import socket
 
+
+from utils_config import *
 def getIP():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -31,7 +33,7 @@ os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
 # ~/Library/Application Support/Lnd/tls.cert on Mac
 
 # print("Opening secure channel to server")
-# cert = open(os.path.expanduser('/etc/serverFiles/tls.cert'), 'rb').read()
+# cert = open(os.path.expanduser(site_config["server_files"]+'/tls.cert'), 'rb').read()
 # creds = grpc.ssl_channel_credentials(cert)
 # channel = grpc.secure_channel('159.89.11.83:10009', creds)
 # stub = lnrpc.LightningStub(channel)
@@ -39,7 +41,7 @@ os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
 #
 # # Lnd admin macaroon is at ~/.lnd/admin.macaroon on Linux and
 # # ~/Library/Application Support/Lnd/admin.macaroon on Mac
-# with open(os.path.expanduser('/etc/serverFiles/admin.macaroon'), 'rb') as f:
+# with open(os.path.expanduser(site_config["server_files"]+'/admin.macaroon'), 'rb') as f:
 #     macaroon_bytes = f.read()
 #     macaroon = codecs.encode(macaroon_bytes, 'hex')
 
@@ -78,6 +80,9 @@ def getPeerInfo(stub,macaroon):
 
     return peerStrings
 
+def getFeeReport(stub,macaroon):
+     response = stub.FeeReport(ln.FeeReportRequest(), metadata=[('macaroon', macaroon)])
+     return response
 
 def getChannelString(chan):
     activityState = termPrint("[INACTIVE]", bcolors.WARNING)
@@ -206,16 +211,16 @@ def getServerConfigs():
             # "macaroon_path" : '~/.lnd/admin.macaroon'},
             {"Alias"      :"Frankfurt-Connect",
             "ip_port_adr"   :"159.89.97.96:10009",
-            "tls_cert_path" :'/etc/serverFiles/frank1/tls.cert',
-            "macaroon_path" : '/etc/serverFiles/frank1/admin.macaroon'},
+            "tls_cert_path" :site_config["server_files"]+'/frank1/tls.cert',
+            "macaroon_path" : site_config["server_files"]+'/frank1/admin.macaroon'},
             {"Alias"      :"London-Connect",
             "ip_port_adr"   :"159.89.11.83:10009",
-            "tls_cert_path" :'/etc/serverFiles/london/tls.cert',
-            "macaroon_path" : '/etc/serverFiles/london/admin.macaroon'},
+            "tls_cert_path" :site_config["server_files"]+'/london/tls.cert',
+            "macaroon_path" : site_config["server_files"]+'/london/admin.macaroon'},
             {"Alias"      :"Lnd-San-Fran",
             "ip_port_adr"   :"159.89.133.236:10009",
-            "tls_cert_path" :'/etc/serverFiles/sanfran1/tls.cert',
-            "macaroon_path" : '/etc/serverFiles/sanfran1/admin.macaroon'}]
+            "tls_cert_path" :site_config["server_files"]+'/sanfran1/tls.cert',
+            "macaroon_path" : site_config["server_files"]+'/sanfran1/admin.macaroon'}]
     return serverList
 
 def getServerChoice(currentChoice):

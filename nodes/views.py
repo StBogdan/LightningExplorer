@@ -12,6 +12,7 @@ import codecs
 import os
 import urllib.request
 
+from utils_config import *
 
 def generate_chart_dataset(descriptionString, target, logged_time):
     print("Generating dataset for:\t"+ descriptionString +"\t for time\t"+ logged_time.strftime("%Y-%m-%d %H:%M:%S")  )
@@ -65,35 +66,36 @@ def obtainedCachedPoz():
         return readData
 
 def obtainNetworkStatistics(target_config_file): #The output from the output of "lncli getnetworkinfo"
-    fileName= open(target_config_file).read().strip()
     enc='utf-8'
-    readData = json.loads(codecs.open(fileName, 'r', enc).read())
-    date_logged = os.path.getmtime(fileName)
+    readData = json.loads(codecs.open(target_config_file, 'r', enc).read())
+    date_logged = os.path.getmtime(target_config_file)
     return [readData,date_logged]
 
 # Create your views here.
 def index(request):
     try:
-        networkStats,date_logged = obtainNetworkStatistics('/etc/django_network_info_path.txt') #Date_logged is unix timestamp as float
+        networkStats,date_logged = obtainNetworkStatistics(site_config["network_info_path"]) #Date_logged is unix timestamp as float
         #Convert Sat to BTC
         networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
         networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
         networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
 
         freshness_testnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
-    except:
+    except Exception as e:
+        print("Error on testnet stat fetch:\t"+ str(e))
         networkStats={}
         freshness_testnet="some time ago"
 
     try:
-        mainnetStats,date_logged = obtainNetworkStatistics('/etc/django_network_info_mainnet.txt') #Date_logged is unix timestamp as float
+        mainnetStats,date_logged = obtainNetworkStatistics(site_config["network_info_mainnet"]) #Date_logged is unix timestamp as float
         #Convert Sat to BTC
         mainnetStats["total_network_capacity"] = str(float(mainnetStats["total_network_capacity"]) / 10**8) +  " BTC"
         mainnetStats["max_channel_size"] = str(float(mainnetStats["max_channel_size"]) / 10**8) +" BTC"
         mainnetStats["avg_channel_size"] = str(mainnetStats["avg_channel_size"] / 10**8) +" BTC"
 
         freshness_mainnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
-    except:
+    except Exception as e:
+        print("Error on mainnet stat fetch:\t"+ str(e))
         mainnetStats={}
         freshness_mainnet="some time ago"
 
@@ -113,6 +115,8 @@ def visualiser(request,network):
 
     [networkData,unconnectedNodes] = filterNodes(networkData)
     n,e = prepareGraphData(networkData["nodes"],networkData["edges"])
+    # n,e = list(networkData["nodes"]),list(networkData["edges"])
+
     print("Data filtered and prepared ")
     # print( [vars(x) for x in networkData["edges"]])
     return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network })
@@ -398,35 +402,38 @@ def search(request,network):
 
 
 def get_node_details_api(node_dict):
+    result={}
+    result["info_given"]=node_dict
     try:
         stub,macaroon = thunder.startServerConnection(node_dict)
-        result={}
-        result["info"] =    thunder.get_info_dict(stub,macaroon)
+        result["info"]    = thunder.get_info_dict(stub,macaroon)
         result["channels"]= thunder.getCurrentChannels(stub,macaroon)
-
-        return result
+        result["peers"]   = (thunder.getPeers(stub,macaroon)).peers
+        result["fees"]  = thunder.getFeeReport(stub,macaroon)
+        # print(result["fees"])
     except Exception as e :
-        return "Data not available, error:\t"+str(e)
+        print("Data not available, error:\t"+str(e))
+        result["info"] = "Data not available, error:\t"+str(e)
+    return result
 
 
 
 def active_dashboard(request):
-    username = request.POST['username']
-    password = request.POST['password']
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)
+    # username = request.POST['username']
+    # password = request.POST['password']
+    # user = authenticate(request, username=username, password=password)
+    # if user is not None:
+    #     login(request, user)
         # Redirect to a success page.
-        own_nodes = thunder.getServerConfigs()
-        print(own_nodes)
-        node_results=[]
-        for node in own_nodes:
-            node_results.append(get_node_details_api(node))
+    own_nodes = thunder.getServerConfigs()
+    node_results=[]
+    for node in own_nodes:
+        node_results.append(get_node_details_api(node))
 
-        return render(request, 'nodes/active.html', {"node_detail_list": node_results})
-    else:
-        # Return an 'invalid login' error message.
-        return Http404()
+    return render(request, 'nodes/active.html', {"node_detail_list": node_results})
+    # else:
+    #     # Return an 'invalid login' error message.
+    #     return Http404()
 
 
 

@@ -11,10 +11,12 @@ from datetime import datetime
 import pickle
 import numpy as np
 
+from utils_config import *
+
 #Returns in order,
 # title, description, dataset_url, dataset_type, dataset_options,parents (if any)
 def get_data_location(network):
-    data_location= {"testnet": open('/etc/lndmon_data_location.txt').read().strip() , "mainnet":  open('/etc/lndmon_data_location_mainnet.txt').read().strip()}
+    data_location= {"testnet": site_config["lndmon_data_location"] , "mainnet":  site_config["lndmon_data_location_mainnet"]}
     return data_location[network]
 
 def get_metric_info(metric_name,network):
@@ -40,7 +42,7 @@ def get_metric_info(metric_name,network):
         newMetric["network"]=network
         return newMetric
 
-data_location = open('/etc/lndmon_data_location.txt').read().strip()
+data_location = site_config["lndmon_data_location"]
 
 def load_json_file(fileName):
     return json.loads(open(fileName).read())
@@ -55,8 +57,8 @@ def count_nodes_nochans(networkGraph):
             unconnectedNodesCount+=1
     return unconnectedNodesCount
 
-def get_country_node_count():
-    ip_data = load_json_file("datasets/ip_location_data")
+def get_country_node_count(network):
+    ip_data = load_json_file('datasets'+ os.sep + network + os.sep + "ip_location_data")
 
     country_dict={}
     for ip in ip_data:
@@ -81,16 +83,43 @@ def count_duplicate_edges(graph_data):
             edges_so_far[chan["node1_pub"]]=[chan["node2_pub"]]
     return duplicates
 
+def get_nodes_capacities(graph_data):
+    node_dict={}
+    for chan in graph_data["edges"]:
+        if( chan["node1_pub"] in node_dict):
+            node_dict[chan["node1_pub"]]+=int(chan["capacity"])
+        else:
+            node_dict[chan["node1_pub"]]=int(chan["capacity"])
+
+        if( chan["node2_pub"] in node_dict):
+            node_dict[chan["node2_pub"]]+=int(chan["capacity"])
+        else:
+            node_dict[chan["node2_pub"]]=int(chan["capacity"])
+
+    return node_dict
+
 def get_average_chan_size(graph_data):
     nr_chans = len(graph_data["edges"])
     chan_size= [int(x["capacity"]) for x in graph_data["edges"]]
 
     return float(sum(chan_size)/nr_chans)
 
+def get_chan_dif(graph_now,graph_old):
+    if(graph_old is None):
+        print("[Channel Change] Can't find old data set for comparison")
+        return 0,0
+
+    old_edge_set = set()
+    new_edge_set = set()
+    old_edge_set.update([x["channel_id"] for x in graph_old["edges"]])
+    new_edge_set.update([x["channel_id"] for x in graph_now["edges"]])
+    return len(old_edge_set-new_edge_set),len(new_edge_set-old_edge_set)
+
 
 def process_dataset(dataSetPath):
     #Array init
     times_dict={}
+    nodes_set=set()
     gaps=[]
 
     currentGapStart= None
@@ -98,13 +127,15 @@ def process_dataset(dataSetPath):
     folder_list=[x for x in os.listdir(dataSetPath) if os.path.isdir(dataSetPath+ os.sep+ x)]  #Just the folders
     print("[DataSet Process] Got number of folders:" + str(len(folder_list)))
 
+    prev_graph,prev_netinfo = None,None
     for folder in folder_list :                                                      #Each day
         folderFiles = os.listdir(dataSetPath+ os.sep + folder)
         netstateFileList = [x for x in folderFiles if x.endswith(".netinfo")]       #Each one should have pair ".graph"
-        print("[DataSet Process] Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tof which " + str(len(netstateFileList)) + " netinfo files")
+        graphFileList = [x for x in folderFiles if x.endswith(".graph")]
+        print("[DataSet Process] Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tof which " + str(len(netstateFileList)) + " netinfo and " +str(len(graphFileList)) + " graph files")
 
         inGap = False
-        for statFile in netstateFileList:
+        for statFile,graphFile in zip(netstateFileList,graphFileList):
             try:
                 summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H:%M:%S")
                 print("Metrics: WARNING OLD TIME FORMAT READ")
@@ -112,7 +143,13 @@ def process_dataset(dataSetPath):
                 summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H-%M-%S")
             try:
                 network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
-                graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile.replace(".netinfo",".graph"))
+                graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + graphFile)
+
+                nodes_cap= get_nodes_capacities(graph_data)
+                new_edges,deleted_edges = get_chan_dif(graph_data,prev_graph)
+                prev_graph,prev_netinfo = graph_data,network_data
+
+                nodes_set.update(nodes_cap)
 
                 times_dict[summaryTime]={
                 "nodes_nr" : network_data["num_nodes"],
@@ -125,7 +162,10 @@ def process_dataset(dataSetPath):
                 "chan_avg_capacity": get_average_chan_size(graph_data),
                 "avg_chan_size" : network_data["avg_channel_size"],
                 "min_chan_size" : network_data["min_channel_size"],
-                "max_chan_size" : network_data["max_channel_size"]
+                "max_chan_size" : network_data["max_channel_size"],
+                "nodes_capacities": nodes_cap,
+                "new_chan_nr":  new_edges,
+                "deleted_chan_nr":deleted_edges
                 }
 
                 if(inGap):           #Gap checking
@@ -145,15 +185,16 @@ def process_dataset(dataSetPath):
                     inGap= True
                     currentGapStart = summaryTime
                 pass
-                # nodes_nrLonely
-    return times_dict, gaps
+
+    return times_dict, gaps, nodes_set
+
 
 
 def generate_and_save(descriptionString,network, data_set= ""):
     if(data_set == ""):
         data_set = process_dataset(get_data_location(network))
     print("[DataSet Gen] Generating dataset for:\t"+ descriptionString +" network:" + network )
-    times_dict, gaps = data_set
+    times_dict, gaps, _ = data_set
     # str_dates = [x.strftime("%Y-%m-%d %H:%M:%S") for x in times]
     resultFilePath= "datasets" + os.sep + network + os.sep + descriptionString
 
@@ -231,7 +272,7 @@ def generate_and_save(descriptionString,network, data_set= ""):
 
     elif(descriptionString == "metric_top_countries" ):
             new_dataset = dataset_template.copy()
-            country_dict = get_country_node_count()
+            country_dict = get_country_node_count(network)
 
             #Get a sorted by value key listdir
             #Reverse it so biggest first
@@ -246,11 +287,11 @@ def generate_and_save(descriptionString,network, data_set= ""):
 
 
     # (Create and) write result to file
-    for data_set in results:
-        if("labels" in data_set ): #Assume one set of labels per metric
+    for data_set_result in results:
+        if("labels" in data_set_result ): #Assume one set of labels per metric
             print("[DataSet Gen] Writing labels to file:\t" + resultFilePath+ "_labels")
             labels_file = open(resultFilePath+"_labels","w+")
-            labels_file.write(json.dumps(data_set["labels"]))
+            labels_file.write(json.dumps(data_set_result["labels"]))
             labels_file.close()
 
     print("[DataSet Gen] Writing dataset to file:\t" + resultFilePath)

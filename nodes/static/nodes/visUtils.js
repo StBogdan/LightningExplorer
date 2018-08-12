@@ -12,34 +12,35 @@ catch (err) {
 
 function addEdge(nID,nTo,nFrom, nValue =1) {
    try {
-       edges.add({ id: nID, from: nTo, to: nFrom, value: nValue, arrows:'to'});
+       edges.add({ id: "edge-"+nID, from: nTo, to: nFrom, value: nValue, arrows:'to'});
    }
    catch (err) {
        alert(err);
    }
 }
 function populateGraph (nodeData,edgeData, locationList = {}){
+  console.log("Adding edges :" + edgeData.length);
+  for( let i=0; i< edgeData.length; i++){
+      let current = edgeData[i];
+      addEdge(current.chan_id,current.node2_pub,current.node1_pub,current.capacity/10**2);
+        console.log("Now edge :" + i + "\t "+ current.chan_id );
+        console.log("Between :" + current.node2_pub + "\t "+ current.node1_pub + "\tCapacity:" + current.capacity );
+  }
+
   console.log("Adding nodes :" + nodeData.length);
-  for( var i=0; i< nodeData.length; i++){
-      var current = nodeData[i];
-      var x =0;
-      var y= 0;
+  for( let i=0; i< nodeData.length; i++){
+      let current = nodeData[i];
+      let x =0;
+      let y= 0;
       // 200 000 SAT is min chan size
-      var size = (current.channels+1)*30;
+      let size = (current.channels+1)*30;
       if ( current.pub_key in locationList){  //Use cached coords in possible
         x= locationList[current.pub_key]["x"];
         y= locationList[current.pub_key]["y"];
       }
+      console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
+       addNode(current.pub_key,current.alias,current.color,size,x,y);
 
-      addNode(current.pub_key,current.alias,current.color,size,x,y);
-      // console.log("Now node :" + i + " pubkey:" + current.pub_key + " at x,y " + x + ":" + y);
-  }
-  console.log("Adding edges :" + edgeData.length);
-  for( var i=0; i< edgeData.length; i++){
-      var current = edgeData[i];
-      addEdge(current.chan_id,current.node2_pub,current.node1_pub,current.capacity/10**2);
-      // console.log("Now edge :" + i + "\t "+ current.chan_id );
-      // console.log("Between :" + current.node2_pub + "\t "+ current.node1_pub + "\tCapacity:" + current.capacity );
   }
 }
 

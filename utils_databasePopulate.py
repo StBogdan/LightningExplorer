@@ -7,8 +7,9 @@ from datetime import datetime
 #Django setup (run in the virtual environemt)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
 django.setup()
-data_location = open('/etc/lndmon_data_location.txt').read().strip()
-data_location_mainnet = open('/etc/lndmon_data_location_mainnet.txt').read().strip()
+from utils_config import *
+data_location = site_config["lndmon_data_location"]
+data_location_mainnet = site_config["lndmon_data_location_mainnet"]
 from nodes.models import *
 
 def get_data_files(full_data_path, one_per_day = 0):
