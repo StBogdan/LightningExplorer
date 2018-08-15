@@ -68,6 +68,7 @@ def get_country_node_count(network):
             country_dict[ip_data[ip]["country"]]+=1
         else:
             country_dict[ip_data[ip]["country"]]=0
+    print("Created country ip dict:" + str(country_dict))
     return country_dict
 
 def count_duplicate_edges(graph_data):

@@ -74,7 +74,7 @@ def get_metric_list():
 
 def get_date_data(target_date,network):
     print(get_last_logged_date(network))
-    print("Get date data in:\t" + data_location[network] + os.sep + target_date)
+    print("[DB Upkeep] Get date data in:\t" + data_location[network] + os.sep + target_date)
     datafiles = os.listdir(data_location[network] + os.sep + target_date)
     first_file = [x for x in datafiles if x.endswith(".graph")][0]
     file_path = data_location[network] + os.sep + target_date+ os.sep + first_file
@@ -145,27 +145,27 @@ def dataset_update(metric_list):
 # Update by putting the last day in
 # data_update(get_current_date(timedelta(days=1)))
 if __name__ == "__main__":
-    # print("[Server Upkeep][1/5] Updating IP database")
-    # ip_map_update(get_last_logged_date("mainnet"),"mainnet")     # Update IP map
-    # ip_map_update(get_last_logged_date("testnet"),"testnet")
-    # print("[Server Upkeep][2/5] Updating website database")
-    # data_update()     #Put new day in db
-    #
-    # #Option for reseting metrics
-    # if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
-    #     print("[Server Upkeep][Reset] Resetting metrics")
-    #     db_reset_metrics()
-    #
+    print("[Server Upkeep][1/5] Updating IP database")
+    ip_map_update(get_last_logged_date("mainnet"),"mainnet")     # Update IP map
+    ip_map_update(get_last_logged_date("testnet"),"testnet")
+    print("[Server Upkeep][2/5] Updating website database")
+    data_update()     #Put new day in db
+
+    #Option for reseting metrics
+    if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
+        print("[Server Upkeep][Reset] Resetting metrics")
+        db_reset_metrics()
+
     if(len(sys.argv) > 1 and sys.argv[1] == "update_current_day"):
         print("[Server Upkeep][Force-update] Adding current day info")
         add_latest_data()
 
-    # #Check metric presence
-    # print("[Server Upkeep][3/5] Checking metric presence")
-    # if(len(Metric.objects.all()) == 0):
-    #     print("[Server Upkeep][3/5] No metrics found, re-creating DB entries")
-    #     db_update_metrics()
-    #
-    # print("[Server Upkeep][4/5] Updating datasets for metrics")
-    # #Update datasets used by metrics
-    # dataset_update(get_metric_list())
+    #Check metric presence
+    print("[Server Upkeep][3/5] Checking metric presence")
+    if(len(Metric.objects.all()) == 0):
+        print("[Server Upkeep][3/5] No metrics found, re-creating DB entries")
+        db_update_metrics()
+
+    print("[Server Upkeep][4/5] Updating datasets for metrics")
+    #Update datasets used by metrics
+    dataset_update(get_metric_list())

@@ -35,7 +35,7 @@
 },
 "metric_top_countries": {
          "title": "Countries with most nodes",
-         "description" :"",
+         "description" :" Shows a bar chart of the nations that host the largest ammount of nodes. Country is determined by the location of the IP address, and as such not all nodes can be mapped.",
          "dataset_type":"'bar'",
          "dataset_options" : ""
 },

@@ -119,7 +119,7 @@ def visualiser(request,network):
 
     print("Data filtered and prepared ")
     # print( [vars(x) for x in networkData["edges"]])
-    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network , "date_logged": get_last_logged_date(network)})
+    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network , "date_logged": get_last_logged_date(network), "chan_count" : len(e), "nodes_count": len(n)})
 
 def prepareForPassing(nodeEntries,edgeEntries):
     edgeList = []

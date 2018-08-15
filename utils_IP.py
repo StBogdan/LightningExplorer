@@ -58,11 +58,11 @@ def get_IP_location(ip):
 def create_ip_dict(data_file_fpath):
 
     data = json.loads(open(data_file_fpath).read())
-    print("Got data consisting of nodes:"+ str(len(data["nodes"])))
+    print("[IP POZ] Got data with nodes:"+ str(len(data["nodes"])))
     location_data_dict={}
     try:
         location_cache = json.loads(open("datasets/cached_ip_data").read())
-        print("[IP POZ] Got dictionary with keys " + str(len(location_data_dict)))
+        print("[IP POZ] Got dictionary with keys " + str(len(location_cache)))
     except:
         location_cache= {}
         print("[IP POZ] Started new IP position dictionary as no cached available")
@@ -79,22 +79,22 @@ def create_ip_dict(data_file_fpath):
             else:
                 ip_str = nodeNetData["addr"].split(":")[0] #Remove port
             # print("[Node "+ str(index)+ " of \t" + str(len(data["nodes"]))+"] Processing: " + ip_str)
+
             if(not ip_str in location_cache):
                 location_data = get_IP_location(ip_str)
                 # print("Got new location data:" + str(locationData) + "\n")
                 if(location_data != "Invalid IP address" and not location_data["status"]== 'fail'):
                     location_data_dict[ip_str]= location_data #add to dict
-                    location_cache[ip_str]= location_data #add to cache
+                    location_cache[ip_str]=     location_data #add to cache
                 else:
                     location_data_dict[ip_str]="No data"
                     location_cache[ip_str]= "No data"
             else:
-                location_data = location_cache[ip_str] #Server from cache
+                location_data_dict[ip_str]=  location_cache[ip_str]         #Server from cache
                 # print("Got cached location data:" + str(location_data_dict[ip_str]) + "\n")
             index+=1
     print("[IP POZ] Got info for "+ str(index)+ " addresses")
-
-
+    print("[IP POZ] Got information covering " + str(len(location_data_dict)) + " IPs for network")
     cache_file = open("datasets/cached_ip_data","w+")
     cache_file.write(json.dumps(location_cache))
     cache_file.close()
