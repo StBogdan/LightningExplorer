@@ -11,37 +11,26 @@
 
 <body>
 {% include "nodes/navbar.html" %}
-<div class="container" style="width: 95%; padding-bottom:5vh;">
+<div class="container" style="padding-bottom:5vh;">
   <div class="index-title jumbotron-fluid">
   <h1>Lightning⚡ Node Active Dashboard</h1>
-    <p class="lead"> View the status of your own nodes</p>
+    <p class="lead"> View the status of {{node.info.alias}}</p>
   </div> <!-- Intro -->
 
-{% for node in node_detail_list %}
 <div class="card">
   {% if node.info.identity_pubkey %}
   <div class="card-header">
-      <h5 class="card-title">Node: {{node.info.alias}}  <a href="/active/{{node.info.identity_pubkey}} " class="btn btn-outline-info btn-sm float-right">Single View</a></h5>
+      <h5 class="card-title">Node: {{node.info.alias}} </h5>
       <h8 class="card-subtitle mb-2 text-muted">  {{node.info.identity_pubkey}}</h8>
-    <ul class="nav nav-tabs card-header-tabs pull-right"  id="node_details_navs" role="tablist">
-      <li class="nav-item">
-       <a class="nav-link active" id="details-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#details-{{node.info.identity_pubkey}}" role="tab" aria-controls="details" aria-selected="true">Details</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="channels-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#channels-{{node.info.identity_pubkey}}" role="tab" aria-controls="channels" aria-selected="false">Channels</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="peers-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#peers-{{node.info.identity_pubkey}}" role="tab" aria-controls="peers" aria-selected="false">Peers</a>
-      </li>
-      <li class="nav-item active">
-       <a class="nav-link" id="raw-tab-{{node.info.identity_pubkey}}" data-toggle="tab" href="#raw-{{node.info.identity_pubkey}}" role="tab" aria-controls="raw" aria-selected="false">Raw response</a>
-      </li>
-    </ul>
   </div> <!-- Card header -->
 <div class="card-body">
 <div class="tab-content" id="node_detail_content"> <!-- Tabbed content -->
 
-<div class="tab-pane show active" id="details-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="details-tab-{{node.info.identity_pubkey}}"> <!-- Content Details-->
+  <h2>Details <a class="btn btn-outline-info btn-sm float-right" aria-controls="node-details"  data-toggle="collapse" data-target="#node-details" aria-expanded="false">Show</a><h2>
+
+<div class="collapse" id="node-details"> <!-- Content Details-->
+  <div class="card mx-auto"> <!-- Peer card -->
+    <div class="card-body"> <!-- Card body-->
   <h5>
       {% for chain in node.info.chains %}
       <span class="badge badge-pill badge-info">{{chain}}</span>
@@ -60,11 +49,13 @@
  </div><br>
  {% endfor %}
   <h6 class="card-subtitle mb-2 text-muted"> LND Version: {{ node.info.version}} </h6>
-
+</div> <!--Card body-->
+</div> <!-- Card details-->
 </div> <!-- Details-->
 
+<h2> Channels <a class="btn btn-outline-info btn-sm float-right" aria-controls="node-channels"  data-toggle="collapse" data-target="#node-channels" aria-expanded="false">Show</a></h2>
+<div class="collapse" id="node-channels"> <!-- Content Channels-->
 
-<div class="tab-pane fade" id="channels-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="channels-tab-{{node.info.identity_pubkey}}"> <!-- Content Channels-->
   {% for chanInfo in node.channels %}
   <div class="card mx-auto"> <!-- Channel card -->
     <div class="card-body">
@@ -91,7 +82,9 @@
   {% endfor %}
 </div> <!-- Channels-->
 
-<div class="tab-pane fade" id="peers-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="peers-tab-{{node.info.identity_pubkey}}">  <!-- Content Peers-->
+<h2>Peers <a class="btn btn-outline-info btn-sm float-right" aria-controls="node-peers"  data-toggle="collapse" data-target="#node-peers" aria-expanded="false">Show</a></h2>
+<div  class="collapse" id="node-peers">   <!-- Content Peers-->
+
   {% for peer in node.peers%}
   <div class="card mx-auto"> <!-- Peer card -->
     <div class="card-body"> <!-- Card body-->
@@ -111,8 +104,10 @@
       </div></h6>
     </div>
   </div>
+    <h6 class="card-subtitle mb-2 text-muted"> Byte traffic: {{ peer.bytes_sent}}/{{peer.sat_recv}} &emsp;Satoshi traffic: {{ peer.sat_sent}}/{{peer.sat_recv}} &emsp; Pingtime: {{peer.ping_time}} ms  </h6>
 
-    <h6 class="card-subtitle mb-2 text-muted"> Byte traffic: {{ peer.bytes_sent}}/{{peer.sat_recv}} &emsp;Satoshi traffic: {{ peer.sat_sent}}/{{peer.sat_recv}}  &emsp; Pingtime: {{peer.ping_time}} ms  </h6>
+
+
   </div>  <!-- Card body-->
   </div> <!-- Peer card-->
   {% empty %}
@@ -122,22 +117,23 @@
   {% endfor %}
 </div> <!-- Peers-->
 
-<div class="tab-pane fade" id="raw-{{node.info.identity_pubkey}}" role="tabpanel" aria-labelledby="raw-tab-{{node.info.identity_pubkey}}"> <!-- Content Raw-->
-  <div class="input-group">
-       <textarea rows="5" type="text" class="form-control uneditable-input"
-            readonly>{{ node }} </textarea>
- </div>
-    </div> <!-- Raw -->
-  </div>  <!-- Tabbed content -->
+<h2> Raw API response <a class="btn btn-outline-info btn-sm float-right" aria-controls="node-raw"  data-toggle="collapse" data-target="#node-raw" aria-expanded="false">Show</a></h2>
+  <div class="collapse" id="node-raw"> <!-- Content Raw-->
+    <div class="input-group">
+         <textarea rows="5" type="text" class="form-control uneditable-input"
+              readonly>{{ node }} </textarea>
+   </div>
+
+  </div> <!-- Raw -->
+</div>  <!-- Tabbed content -->
 </div> <!-- Card body -->
   {% else %}
 
-    <div class="card-header">   <h5 class="card-title">Node: {{node.info_given.Alias}}</h5>
+    <div class="card-header">  <h5 class="card-title">Node: {{node.info_given.alias}}</h5>
       <h8 class="card-subtitle mb-2 text-muted"> Data not available</h8>
     </div>
   {% endif %}
 </div> <!-- Node card-->
-{% endfor %}
 
 </div> <!-- Page container -->
 <!-- Bootstrap scripts -->

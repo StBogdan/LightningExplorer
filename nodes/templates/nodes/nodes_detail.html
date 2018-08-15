@@ -89,11 +89,11 @@
   <div class="card col-md-6" style="width: 48%;">
     <div class="card-body" style="overflow-y:scroll;">
       <h5 class="card-title">Data logged at: {{ date_logged.date_display }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted ">View at other dates</h6>
+      <h6 class="card-subtitle mb-2 text-muted ">View at other times/dates (or click on points in the graphs below to explore the corresponding time)</h6>
       <div class="time-box">
         <ul>
           {% for oneDate in data_dates %}
-            <li><a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}" >On {{ oneDate.date_display }} </a> </li>
+            <li><a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}" >On {{ oneDate.date_display }} {{oneDate.date_unix }}</a> </li>
           {% empty %}
             <p> No other dates available </p>
           {% endfor %}
@@ -104,7 +104,7 @@
 </div>  <!-- Row -->
 
 <div class="row d-flex justify-content-center">
-<div class="card bg-light md-6" style="width: 40%;">
+<div class="card bg-light md-6" style="width: 50%;">
   <canvas id="node_capacity"></canvas>
 
   <script>
@@ -112,7 +112,7 @@
   // var data_set = {{ test_data_set | safe }} ; //Has to be json encoded
   var data_sets =  {{chart_dataset_capacity|safe}};
   var ctx = document.getElementById('node_capacity').getContext('2d');
-  var chart = new Chart(ctx, {
+  var chart_capacity = new Chart(ctx, {
       // The type of chart we want to create
       type: "line",
       // The data for our dataset
@@ -124,7 +124,7 @@
 </div> <!-- Card-->
 
 
-<div class="card bg-light md-6" style="width: 40%;">
+<div class="card bg-light md-6" style="width: 50%;">
   <canvas id="node_channels"></canvas>
 
   <script>
@@ -132,7 +132,7 @@
   // var data_set = {{ test_data_set | safe }} ; //Has to be json encoded
   var data_sets =  {{chart_dataset_chans|safe}};
   var ctx = document.getElementById('node_channels').getContext('2d');
-  var chart = new Chart(ctx, {
+  var chart_channels = new Chart(ctx, {
       // The type of chart we want to create
       type: "line",
       // The data for our dataset

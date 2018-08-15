@@ -29,7 +29,7 @@ def generate_chart_dataset(descriptionString, target, logged_time):
         labels=""
 
         data_query_result= Node.objects.filter(pub_key=target).order_by("date_logged")
-        new_dataset["data"] = [ {"x": x.date_logged.strftime("%Y-%m-%d %H:%M:%S"), "y": x.capacity} for x in data_query_result ]
+        new_dataset["data"] = [ {"x": x.date_logged.strftime("%Y-%m-%d %H:%M:%S:%f"), "y": x.capacity} for x in data_query_result ]
         # new_dataset["data"] = [ {"x": time, "y":data_point } for time,data_point in zip(str_dates,avg_chan_size)]
         results.append(new_dataset)
     elif(descriptionString == "node_channels"):
@@ -48,7 +48,7 @@ def generate_chart_dataset(descriptionString, target, logged_time):
 def get_last_logged_date(network_on):
      return Node.objects.filter(network= network_on).values("date_logged").last()["date_logged"]
 
-def obtainNetworkData(target_date_logged = "", network="testnet"):
+def get_network_data(target_date_logged = "", network="testnet"):
         if(target_date_logged == ""):
             target_date_logged = get_last_logged_date(network)
         # fileName= "newGraph.json"
@@ -60,8 +60,8 @@ def obtainNetworkData(target_date_logged = "", network="testnet"):
 
         return readData
 
-def obtainedCachedPoz():
-        fileName= "cachedLocations.json"
+def get_graph_cache(network="testnet"):
+        fileName= "cachedLocations-"+ network+".json"
         readData = json.loads(open(fileName).read())
         return readData
 
@@ -107,8 +107,8 @@ def about(request):
 
 
 def visualiser(request,network):
-    networkData = obtainNetworkData(get_last_logged_date(network),network)
-    nodePoz = obtainedCachedPoz()
+    networkData = get_network_data(get_last_logged_date(network),network)
+    nodePoz = get_graph_cache(network)
 
     # networkData =' { "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } }'
     print("Got cache and node and edge data "+ str(len(networkData["nodes"]))+ " with edges " + str(len(networkData["edges"])) )
@@ -119,7 +119,7 @@ def visualiser(request,network):
 
     print("Data filtered and prepared ")
     # print( [vars(x) for x in networkData["edges"]])
-    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network })
+    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network , "date_logged": get_last_logged_date(network)})
 
 def prepareForPassing(nodeEntries,edgeEntries):
     edgeList = []
@@ -156,7 +156,7 @@ def prepareGraphData(nodeEntries,edgeEntries):
 
 
 def nodes(request,network):
-        [networkData,unconnectedNodes] = filterNodes(obtainNetworkData(get_last_logged_date(network),network))
+        [networkData,unconnectedNodes] = filterNodes(get_network_data(get_last_logged_date(network),network))
         paginator_ucn = Paginator(networkData["nodes"], 15)
         print(len(networkData["nodes"]))
 
@@ -168,7 +168,7 @@ def nodes(request,network):
         return render(request, 'nodes/nodes.html', {"nodes" : nodes_page, "network":network})
 
 def channels(request,network):
-        graphData = obtainNetworkData(get_last_logged_date(network),network)
+        graphData = get_network_data(get_last_logged_date(network),network)
         # print(graphData)
         paginator_edges = Paginator(graphData["edges"], 15)
 
@@ -250,7 +250,7 @@ def nodes_detail(request, nodePubKey, network, date_logged= ""):
         if(type(date_logged) is int or date_logged == ""):
             date_logged = datetime.fromtimestamp(int(date_logged))
 
-        networkData = obtainNetworkData(date_logged,network)
+        networkData = get_network_data(date_logged,network)
         if(len(networkData["nodes"].filter( pub_key = nodePubKey)) > 1):
             raise Exception("Multiple nodes found for identifier"+ str(pub_key))
         nodeID = networkData["nodes"].filter( pub_key = nodePubKey).first()
@@ -261,8 +261,16 @@ def nodes_detail(request, nodePubKey, network, date_logged= ""):
         js_dataset_capacity,js_options,js_labels_capacity =generate_chart_dataset("node_capacity",nodePubKey,date_logged)
         js_dataset_chans,js_options,js_labels_chans =generate_chart_dataset("node_channels",nodePubKey,date_logged)
 
-        data_dates = [{"date_display": x["date_logged"].strftime("%Y-%m-%d"), "date_unix": x["date_logged"].strftime("%s")} for x in Node.objects.filter(pub_key= nodePubKey).values("date_logged").distinct().order_by('date_logged')]
+        data_dates = [{"date_display": x["date_logged"].strftime("%Y-%m-%d %H:%M:%S"), "date_unix": x["date_logged"].strftime("%s")} for x in Node.objects.filter(pub_key= nodePubKey).values("date_logged").distinct().order_by('date_logged')]
         # data_dates = [{"date_display": x["date_logged"].strftime("%Y-%m-%d %H-%M-%S"), "date_unix": x["date_logged"].strftime("%s")} for x in Node.objects.filter(pub_key= nodePubKey).values("date_logged").distinct()]
+
+        print("-----------------------")
+        print(js_dataset_capacity[0]["data"][0])
+        print("-----------------------")
+        print(js_dataset_chans[0]["data"][0])
+        print("-----------------------")
+        print(data_dates[0])
+        print("-----------------------")
         return render(request, 'nodes/nodes_detail.html',
                         {"nodes" :json.dumps(prepedNodes),
                         "data_dates": data_dates,
@@ -277,12 +285,14 @@ def nodes_detail(request, nodePubKey, network, date_logged= ""):
                         "date_logged": {"date_display": date_logged.strftime("%Y-%m-%d %H:%M"), "date_unix" : date_logged.strftime("%s")},
                         "network" : network})
 
+
+
 def channel_detail(request, chanID,date_logged= "",network = "testnet"):
         if(date_logged==""):
-            date_logged= Node.objects.all().values("date_logged").first()["date_logged"]
+            date_logged= Node.objects.filter(network= network).values("date_logged").first()["date_logged"]
         if(type(date_logged) is int ):
             date_logged = datetime.fromtimestamp(int(date_logged))
-        networkData = obtainNetworkData(date_logged,network)
+        networkData = get_network_data(date_logged,network)
 
         [nodes,edges] = getEdgeConnections(networkData,chanID)
         edgeInfo = networkData["edges"].filter(chan_id=chanID).first()
@@ -301,6 +311,8 @@ def channel_detail(request, chanID,date_logged= "",network = "testnet"):
 
 
 def getEdgeConnections(networkGraph, edgeID):
+    print(networkGraph["edges"].filter(chan_id=edgeID))
+    print(edgeID)
     edgeEntry = networkGraph["edges"].filter(chan_id=edgeID).first()
     if (len(networkGraph["edges"].filter(chan_id=edgeID)) > 1):
         raise Exception("Multiple channels found for identifier"+ str(edgeID))
@@ -372,7 +384,7 @@ def getNodeEdges(networkGraph, nodeEntry):
 def search(request,network):
     on_network = network #Avoid naming confusion on databae lookup
     if request.method == 'GET':
-        data = obtainNetworkData()
+        data = get_network_data(get_last_logged_date(network),network)
         possibleMatchesNodes=[]
         possibleMatchesEdges=[]
         try:
@@ -438,7 +450,10 @@ def active_dashboard(request):
 
 
 def active_node_detail(request,node_pubkey):
-    return render(request, 'nodes/active.html', {})
+    own_nodes = thunder.getServerConfigs()
+    target_node = [x for x in own_nodes if x["pubkey"] == node_pubkey][0] #Should only be one
+    node_detail =  get_node_details_api(target_node)
+    return render(request, 'nodes/active_detail.html', {"node": node_detail})
 
 def active_channel_detail(request,node_pubkey,chan_id):
     return render(request, 'nodes/active.html', {})

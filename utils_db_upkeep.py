@@ -94,14 +94,31 @@ def add_new_day(target_date): #Date is YYYY-MM-DD format string
         print("Got target file:\t"+ file_path)
         date,nodes,chans = db_pop.get_net_data(file_path)
 
-        node_extra_info = [getCapacity(node["pub_key"],chans) for node in nodes]
-        nodes_entries, address_entries = createNodeEntries(nodes,date,[ x for [x,y] in node_extra_info ] , [ y for [x,y] in node_extra_info ] )
+        node_extra_info = [db_pop.get_node_capacity(node["pub_key"],chans) for node in nodes]
+        nodes_entries, address_entries = db_pop.createNodeEntries(nodes,date,[ x for [x,y] in node_extra_info ] , [ y for [x,y] in node_extra_info ] )
 
-        edges_entries, policies = createChanEntries(chans,date,nodes_entries)
+        edges_entries, policies = db_pop.createChanEntries(chans,date,nodes_entries)
 
         print("Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
     except Exception as e:
         print("ERROR ON DATE: " + target_date + " \t" + str(e))
+
+def add_latest_data():
+    #Get the first file (.graph will be before .netinfo)
+    prefix= "/Users/stbogdan/OneDrive/542_MSc_Indivdual_Project/Data/testing_mainnet/2018-08-01"
+    for file in os.listdir(prefix):
+        try:
+            if(file.endswith(".graph")):
+                file_path= prefix + os.sep + file
+                print("Got target file:\t"+ file_path)
+                date,nodes,chans = db_pop.get_net_data(file_path)
+                node_extra_info = [db_pop.get_node_capacity(node["pub_key"],chans) for node in nodes]
+                nodes_entries, address_entries = db_pop.createNodeEntries(nodes,date,[ x for [x,y] in node_extra_info ] , [ y for [x,y] in node_extra_info ],"mainnet" )
+                edges_entries, policies = db_pop.createChanEntries(chans,date,nodes_entries,"mainnet")
+                print("Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
+        except Exception as e:
+            print("ERROR:" + str(e))
+
 
 def data_update(full_date = get_current_date() ):
     if(get_last_logged_date("mainnet") != full_date ):
@@ -128,23 +145,27 @@ def dataset_update(metric_list):
 # Update by putting the last day in
 # data_update(get_current_date(timedelta(days=1)))
 if __name__ == "__main__":
-    print("[Server Upkeep][1/5] Updating IP database")
-    ip_map_update(get_last_logged_date("mainnet"),"mainnet")     # Update IP map
-    ip_map_update(get_last_logged_date("testnet"),"testnet")
-    print("[Server Upkeep][2/5] Updating website database")
-    data_update()     #Put new day in db
+    # print("[Server Upkeep][1/5] Updating IP database")
+    # ip_map_update(get_last_logged_date("mainnet"),"mainnet")     # Update IP map
+    # ip_map_update(get_last_logged_date("testnet"),"testnet")
+    # print("[Server Upkeep][2/5] Updating website database")
+    # data_update()     #Put new day in db
+    #
+    # #Option for reseting metrics
+    # if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
+    #     print("[Server Upkeep][Reset] Resetting metrics")
+    #     db_reset_metrics()
+    #
+    if(len(sys.argv) > 1 and sys.argv[1] == "update_current_day"):
+        print("[Server Upkeep][Force-update] Adding current day info")
+        add_latest_data()
 
-    #Option for reseting metrics
-    if(len(sys.argv) > 1 and sys.argv[1] == "reset"):
-        print("[Server Upkeep][Reset] Resetting metrics")
-        db_reset_metrics()
-
-    #Check metric presence
-    print("[Server Upkeep][3/5] Checking metric presence")
-    if(len(Metric.objects.all()) == 0):
-        print("[Server Upkeep][3/5] No metrics found, re-creating DB entries")
-        db_update_metrics()
-        
-    print("[Server Upkeep][4/5] Updating datasets for metrics")
-    #Update datasets used by metrics
-    dataset_update(get_metric_list())
+    # #Check metric presence
+    # print("[Server Upkeep][3/5] Checking metric presence")
+    # if(len(Metric.objects.all()) == 0):
+    #     print("[Server Upkeep][3/5] No metrics found, re-creating DB entries")
+    #     db_update_metrics()
+    #
+    # print("[Server Upkeep][4/5] Updating datasets for metrics")
+    # #Update datasets used by metrics
+    # dataset_update(get_metric_list())

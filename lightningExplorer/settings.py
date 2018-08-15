@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [".lndmon.com", "127.0.0.1", "localhost"]
 # Application definition
 
 INSTALLED_APPS = [
-    'nodes.apps.NodesConfig',
+    'nodes.apps.NodesConfig', #Makemigrations wants "nodes"
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

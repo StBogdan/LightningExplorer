@@ -3,7 +3,6 @@
   <a class="navbar-brand" href="/index">Lightning Monitor</a>
   <ul class="navbar-nav">
     {% if network %}
-
     <li class="nav-item">
       <a class="nav-link" href="/{{network}}/visualiser">Visualise</a>
     </li>
@@ -19,7 +18,13 @@
     <li class="nav-item">
       <a class="nav-link" href="/about">About</a>
     </li>
-    {% else %}
+    <li class="nav-item">
+      <a class="nav-link" href="/active">Active</a>
+    </li>
+  </ul>
+    <form class=" w-100" action="/{{network}}/search" method="GET" >
+    <input class= "form-control form-control-dark w-100" type="text" name="search_term" placeholder="Double Click on channels/nodes for more" aria-label="Search" >
+  {% else %}
     <li class="nav-item">
       <a class="nav-link" href="mainnet/visualiser">Visualise</a>
     </li>
@@ -35,15 +40,19 @@
     <li class="nav-item">
       <a class="nav-link" href="/about">About</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/active">Active</a>
+    </li>
+  </ul>
+
+    <form class=" w-100" action="mainnet/search" method="GET" >
+    <input class= "form-control form-control-dark w-100" type="text" name="search_term" placeholder="Double Click on channels/nodes for more" aria-label="Search" >
     {% endif %}
     <!--
     <li class="nav-item">
       <a class="nav-link" href="/blockchain">Blockchain</a>
     </li> #}
   -->
-  </ul>
-  <form class=" w-100" action="/search" method="GET" >
-  <input class= "form-control form-control-dark w-100" type="text" name="search_term" placeholder="Double Click on channels/nodes for more" aria-label="Search" >
 
 
 </form>

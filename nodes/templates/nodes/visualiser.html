@@ -30,8 +30,35 @@
 
 <body>
 {% include "nodes/navbar.html" %}
+<div class="container" style="height:4vh">
+  <div class="badge badge-success">
+  Data Collected at {{ date_logged }} on the Bitcoin {{ network }}.
+</div>
+<div class="badge badge-info">
+Nodes: {{nodes_count}}
+</div>
+<div class="badge badge-info">
+Edges: {{chan_count}}
+</div>
+
+
+  <div class="btn-group btn-group-toggle" data-toggle="buttons">
+  <label class="btn btn-outline-info btn-sm active" id="edges_toggle_simple" data-toggle="popover" data-placement="bottom" data-content="Graph edges are simpler and offer better performance (use when the graph is expanding)" data-trigger="focus" >
+    <input type="radio" name="options" autocomplete="off" checked > Simple
+  </label>
+  <label class="btn btn-outline-info btn-sm"  id="edges_toggle_dynamic"   data-toggle="popover" data-placement="bottom" data-content="Graph edges are dynamic, worse performance but better resulting graph (in terms of structure)" data-trigger="focus" >
+    <input type="radio" name="options" autocomplete="off"> Dynamic
+  </label>
+  </div>
+  <button type="button" class="btn btn-outline-info btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
+  Physics Enabled
+</button>
+</div>
+</div>
+
 
 <div class="box" id="mynetwork"> </div>
+
 
 <script type="text/javascript">
 
@@ -54,7 +81,7 @@
     layout: { improvedLayout:false,
      },
      physics: {
-       enabled: true, //Enable when starting from scratch
+       enabled: false, //Enable when starting from scratch
        stabilization: false,
        barnesHut: {
          gravitationalConstant: -80000,
@@ -71,7 +98,8 @@
          opacity:0.5
        },
        smooth:{
-         type:'dynamic'
+         enabled: false
+         // type:'dynamic'
        }
      },
      nodes: {
@@ -82,6 +110,9 @@
             },
             min:25,
             max:5000
+          },
+          shapeProperties: {
+            interpolation: false    // 'true' for intensive zooming
           }
         }
   }
@@ -96,6 +127,28 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<script>
+//Enable popovers
+$(function () { $('[data-toggle="popover"]').popover()})
+
+//Button controllers
+var physics_on = false;
+$('#edges_toggle_simple').on('click', function (e) {
+  console.log("Setting is now: simple edges");
+ network.setOptions({edges:{smooth:{enabled: false}}});
+})
+
+$('#edges_toggle_dynamic').on('click', function (e) {
+  console.log("Setting is now: dynamic edges");
+  network.setOptions({edges:{smooth:{type:'dynamic'}}});
+})
+
+$('#physics_toggle').on('click', function (e) {
+  physics_on = !physics_on;
+  network.setOptions({physics:{enabled: physics_on}});
+
+})
+</script>
 
 </body>
 </html>

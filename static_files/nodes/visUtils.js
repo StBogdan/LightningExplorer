@@ -12,7 +12,7 @@ catch (err) {
 
 function addEdge(nID,nTo,nFrom, nValue =1) {
    try {
-       edges.add({ id: "edge-"+nID, from: nTo, to: nFrom, value: nValue, arrows:'to'});
+       edges.add({ id: nID, from: nTo, to: nFrom, value: nValue, arrows:'to'});
    }
    catch (err) {
        alert(err);
