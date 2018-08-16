@@ -243,15 +243,15 @@ def getServerChoice(currentChoice):
     return serverChoice
 
 
-def getNodesWithIPs(networkGraph):
-    nodesWithIPs = [node for node in networkGraph.nodes if  len(node.addresses) > 0 ]
+def getNodesWithIPs(networkGraph_nodes):
+    nodesWithIPs = [node for node in networkGraph_nodes if  len(node["addresses"]) > 0 ]
     # node.pub_key == "023b14be2d7a3fc2b24eb14b25d44afc41cb8d0a6e01067da36ea3299e2f9bfe70"] #Testing with own node
     print("Counted notes with ip addresses: " + str(len(nodesWithIPs)))
     return nodesWithIPs
 
 def getNodeURI(nodeInfo):
-    if(len(nodeInfo.addresses) <1):
+    if(len(nodeInfo["addresses"]) <1):
         print("ERROR: Node has no addresses")
         return ""
     else:
-        return nodeInfo.pub_key+"@"+nodeInfo.addresses[0].addr
+        return nodeInfo["pub_key"]+"@"+nodeInfo["addresses"][0]["addr"]
