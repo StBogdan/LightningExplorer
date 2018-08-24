@@ -1,0 +1,8 @@
+{
+"network_info_path": "/path/to/latest.netinfo",
+"network_info_mainnet" : "/path/to/latest_mainnet.netinfo",
+"lndmon_data_location": "/path/to/testnet_data",
+"lndmon_data_location_mainnet": "/path/to/mainnet_data",
+"server_files":"/path/to/certs",
+"django_debug": true/false
+}

@@ -55,6 +55,7 @@ def count_nodes_nochans(networkGraph):
     for node in networkGraph["nodes"]:
         if not node["pub_key"] in nodesWithEdges:
             unconnectedNodesCount+=1
+    # print("[LONERWATCH] GOT loners:" + str(unconnectedNodesCount) + " out of nodes: "+ str(len(networkGraph["nodes"])))
     return unconnectedNodesCount
 
 def get_country_node_count(network):
@@ -84,18 +85,31 @@ def count_duplicate_edges(graph_data):
             edges_so_far[chan["node1_pub"]]=[chan["node2_pub"]]
     return duplicates
 
+#Get node capacity (total ,outbound, inbound)
 def get_nodes_capacities(graph_data):
     node_dict={}
     for chan in graph_data["edges"]:
-        if( chan["node1_pub"] in node_dict):
-            node_dict[chan["node1_pub"]]+=int(chan["capacity"])
-        else:
-            node_dict[chan["node1_pub"]]=int(chan["capacity"])
+        capacity_actual = int(chan["capacity"])
+        node1=chan["node1_pub"]
+        node2=chan["node2_pub"]
+        if( node1 in node_dict):
 
-        if( chan["node2_pub"] in node_dict):
-            node_dict[chan["node2_pub"]]+=int(chan["capacity"])
+            node_dict[node1]["out"]+=capacity_actual
+            node_dict[node1]["total"]+=capacity_actual
         else:
-            node_dict[chan["node2_pub"]]=int(chan["capacity"])
+            node_dict[node1]={}
+            node_dict[node1]["out"]=capacity_actual
+            node_dict[node1]["in"]= 0
+            node_dict[node1]["total"]=capacity_actual
+
+        if( node2 in node_dict):
+            node_dict[node2]["in"]+=capacity_actual
+            node_dict[node2]["total"]+=capacity_actual
+        else:
+            node_dict[node2]={}
+            node_dict[node2]["out"]=0
+            node_dict[node2]["in"]=capacity_actual
+            node_dict[node2]["total"]=capacity_actual
 
     return node_dict
 
@@ -105,28 +119,37 @@ def get_average_chan_size(graph_data):
 
     return float(sum(chan_size)/nr_chans)
 
-def get_chan_dif(graph_now,graph_old):
+def get_chan_dif(graph_now,graph_old,known_chan_set):
     if(graph_old is None):
         print("[Channel Change] Can't find old data set for comparison")
-        return 0,0
+        return 0,0,0,0
 
     old_edge_set = set()
     new_edge_set = set()
     old_edge_set.update([x["channel_id"] for x in graph_old["edges"]])
     new_edge_set.update([x["channel_id"] for x in graph_now["edges"]])
-    return len(old_edge_set-new_edge_set),len(new_edge_set-old_edge_set)
+
+    created_edges= [x for x in new_edge_set-old_edge_set if not x in known_chan_set] #Ignore chans we aleady have seen, but lost for a while
+    created_edge_capacity= sum([int(x["capacity"]) for x in graph_now["edges"] if x["channel_id"] in created_edges])
+
+    removed_edges= [x for x in old_edge_set-new_edge_set if x in known_chan_set] #Only removed previously known channels
+
+    removed_edge_capacity= sum([int(x["capacity"]) for x in graph_old["edges"] if x["channel_id"] in removed_edges])
+
+    return len(created_edges),created_edge_capacity,len(removed_edges),removed_edge_capacity
 
 
-def process_dataset(dataSetPath):
+def process_dataset(dataSetPath,hourly= False):
     #Array init
     times_dict={}
     nodes_set=set()
+    chan_set=set()
     gaps=[]
 
     currentGapStart= None
 
     folder_list=[x for x in os.listdir(dataSetPath) if os.path.isdir(dataSetPath+ os.sep+ x)]  #Just the folders
-    print("[DataSet Process] Got number of folders:" + str(len(folder_list)))
+    print("[DataSet Process] Got number of folders:" + str(len(folder_list)) + " processing hourly: "+ str(hourly))
 
     prev_graph,prev_netinfo = None,None
     for folder in folder_list :                                                      #Each day
@@ -135,22 +158,34 @@ def process_dataset(dataSetPath):
         graphFileList = [x for x in folderFiles if x.endswith(".graph")]
         print("[DataSet Process] Folder "+ str(folder) + " has " + str(len(folderFiles)) + "\tof which " + str(len(netstateFileList)) + " netinfo and " +str(len(graphFileList)) + " graph files")
 
+        current_hour =-1
+        current_day= -1
+
         inGap = False
-        for statFile,graphFile in zip(netstateFileList,graphFileList):
+        for statFile,graphFile in zip(sorted(netstateFileList),sorted(graphFileList)):
             try:
+                summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H-%M-%S")
+            except Exception as e:
                 summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H:%M:%S")
                 print("Metrics: WARNING OLD TIME FORMAT READ")
-            except Exception as e:
-                summaryTime= datetime.strptime(statFile.split(".")[0], "%Y-%m-%d-%H-%M-%S")
             try:
+                if(hourly): #Only go through this is hourly flag is set
+                    if (current_hour!= summaryTime.hour or current_day!= summaryTime.day) :
+                        # print("[Hourly process] PROCESS " + str(summaryTime.hour) + " on " + str(summaryTime.day) + "compare to " + str(current_hour) + " on " + str(current_day))
+                        current_hour= summaryTime.hour
+                        current_day =summaryTime.day
+                    else:
+                        # print("BEEP BOOP CONTINUE " + str(summaryTime.hour) + " on " + str(summaryTime.day) + "compare to " + str(current_hour) + " on " + str(current_day))
+                        continue
                 network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
                 graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + graphFile)
 
-                nodes_cap= get_nodes_capacities(graph_data)
-                new_edges,deleted_edges = get_chan_dif(graph_data,prev_graph)
-                prev_graph,prev_netinfo = graph_data,network_data
+                nodes_cap_dict= get_nodes_capacities(graph_data)
+                new_edges_count,new_edges_cap,deleted_edges_count,deleted_edges_cap = get_chan_dif(graph_data,prev_graph,chan_set)
+                prev_graph,prev_netinfo = graph_data,network_data   #Update for next check
 
-                nodes_set.update(nodes_cap)
+                nodes_set.update(nodes_cap_dict)
+                chan_set.update([x["channel_id"] for x in graph_data["edges"]])
 
                 times_dict[summaryTime]={
                 "nodes_nr" : network_data["num_nodes"],
@@ -164,9 +199,12 @@ def process_dataset(dataSetPath):
                 "avg_chan_size" : network_data["avg_channel_size"],
                 "min_chan_size" : network_data["min_channel_size"],
                 "max_chan_size" : network_data["max_channel_size"],
-                "nodes_capacities": nodes_cap,
-                "new_chan_nr":  new_edges,
-                "deleted_chan_nr":deleted_edges
+                "nodes_capacities": nodes_cap_dict,
+                "edges_capacities": [int(x["capacity"]) for x in graph_data["edges"]],
+                "new_chan_nr":  new_edges_count,
+                "new_chan_cap": new_edges_cap,
+                "deleted_chan_nr":deleted_edges_count,
+                "deleted_chan_cap": deleted_edges_cap
                 }
 
                 if(inGap):           #Gap checking
@@ -181,13 +219,14 @@ def process_dataset(dataSetPath):
                 error_msg = str(e)
                 if(str(e).startswith("Expecting value: line 1 column 1 (char 0)")):
                     error_msg ="Empty file, this is YOUR fault"
-                print("[DataSet Process]  On processing\t "+ os.sep + folder + os.sep + statFile + " Error:\t"+ error_msg)
+                print("[DataSet Process] On processing\t "+ os.sep + folder + os.sep + statFile + " Error:\t"+ error_msg)
                 if(not inGap):
                     inGap= True
                     currentGapStart = summaryTime
                 pass
+            print("-", end="", flush=True)#Give some indication that a file has been processed
 
-    return times_dict, gaps, nodes_set
+    return times_dict, gaps, nodes_set, chan_set
 
 
 
@@ -195,7 +234,7 @@ def generate_and_save(descriptionString,network, data_set= ""):
     if(data_set == ""):
         data_set = process_dataset(get_data_location(network))
     print("[DataSet Gen] Generating dataset for:\t"+ descriptionString +" network:" + network )
-    times_dict, gaps, _ = data_set
+    times_dict, gaps, _, _ = data_set
     # str_dates = [x.strftime("%Y-%m-%d %H:%M:%S") for x in times]
     resultFilePath= "datasets" + os.sep + network + os.sep + descriptionString
 
