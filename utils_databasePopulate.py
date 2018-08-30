@@ -157,9 +157,9 @@ def createDBentries(full_data_path,network):
 
             edges_entries, policies = createChanEntries(chans,date,nodes_entries, network)
 
-            print("[ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t"+"Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
+            print("[DB Populate]["+ network + "][ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t"+"Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
         except Exception as e:
-            print("[ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t" + "ERROR ON FILE: " + file + "\t" + str(e))
+            print("[DB Populate]["+ network + "][ "+ str(index) + "/" +  str(len(data_folders)) + " ]\t" + "ERROR ON FILE: " + file + "\t" + str(e))
             if("out of range" in str(e) ):
                 raise e
 

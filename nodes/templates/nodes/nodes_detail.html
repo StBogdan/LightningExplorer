@@ -88,12 +88,19 @@
   </div>  <!-- Card -->
   <div class="card col-md-6" style="width: 48%;">
     <div class="card-body" style="overflow-y:scroll;">
-      <h5 class="card-title">Data logged at: {{ date_logged.date_display }}</h5>
+      <div class="card-title badge badge-success">
+          <h5>Data Collected at {{ date_logged.date_display }} on the Bitcoin {{ network }}.</h5>
+      </div>
+      <button type="button" class="btn btn-outline-info btn-sm float-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
+      Physics Enabled
+    </button>
       <h6 class="card-subtitle mb-2 text-muted ">View at other times/dates (or click on points in the graphs below to explore the corresponding time)</h6>
       <div class="time-box">
         <ul>
           {% for oneDate in data_dates %}
-            <li><a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}" >On {{ oneDate.date_display }} {{oneDate.date_unix }}</a> </li>
+            <li>
+              <a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}"> <div class="badge badge-info">On {{ oneDate.date_display }}</div></a> Unix timestamp: {{oneDate.date_unix }}
+            </li>
           {% empty %}
             <p> No other dates available </p>
           {% endfor %}
@@ -181,5 +188,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
 {% include "nodes/footer.html" %}
+
+
+<script>
+var physics_on = true;
+$('#physics_toggle').on('click', function (e) {
+  physics_on = !physics_on;
+  network.setOptions({physics:{enabled: physics_on}});
+
+})
+</script>
+
+
 </body>
 </html>

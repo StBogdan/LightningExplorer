@@ -40,10 +40,12 @@ document.getElementById("node_capacity").onclick = function(evt){
   console.log(result);
   if(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x){
     var site_now =window.location.href ;
+    var time_now = chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x;
+
     var new_site= site_now.split("/");
     console.log(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x);
     //Get the unix time for the UTC timezone
-    var time_picked_unix =(new Date(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x + "Z")).getTime() / 1000
+    var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
     if(site_now.split("/").length == 7){
       new_site[6]=time_picked_unix;
     }
@@ -60,10 +62,12 @@ document.getElementById("node_channels").onclick = function(evt){
   console.log(result);
   if(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x){
     var site_now =window.location.href ;
+    var time_now = chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x;
+
     var new_site= site_now.split("/");
     console.log(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x);
     //Get the unix time for the UTC timezone
-    var time_picked_unix =(new Date(chart_edges.data.datasets[result._datasetIndex]["data"][result._index].x + "Z")).getTime() / 1000
+    var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
     if(site_now.split("/").length == 7){
       new_site[6]=time_picked_unix;
     }
