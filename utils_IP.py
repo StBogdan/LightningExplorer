@@ -13,15 +13,15 @@ import urllib.request
 # - From each node that you have you should send a payment to all your other nodes and map the network if possible
 # etc..
 
-import pickle
-# Pickle-based object saving methods
-def save_obj(obj, name ):
-    with open('obj/'+ name + '.pkl', 'wb') as f:
-        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-
-def load_obj(name ):
-    with open('obj/' + name + '.pkl', 'rb') as f:
-        return pickle.load(f)
+# import pickle
+# # Pickle-based object saving methods
+# def save_obj(obj, name ):
+#     with open('obj/'+ name + '.pkl', 'wb') as f:
+#         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+# 
+# def load_obj(name ):
+#     with open('obj/' + name + '.pkl', 'rb') as f:
+#         return pickle.load(f)
 
 def get_IP_location(ip):
     try:

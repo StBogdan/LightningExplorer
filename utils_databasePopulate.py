@@ -135,17 +135,28 @@ def createChanEntries(edges_info,edge_date,nodes_entries,network_origin):
 
 
 
-def createDBentries(full_data_path,network):
+def createDBentries(full_data_path,network,hourly=False):
     nodes_entries = {}
     edges_entries = []
     policy_entries= []
-    data_folders = get_data_files(full_data_path,1) #One per day
+    data_folders = get_data_files(full_data_path) #One per day
     index=0
-    print("[DB Populate]["+ network + "] Have to process: "+ str(len(data_folders)) + " folders")
+    print("[DB Populate]["+ network + "] Have to process: "+ str(len(data_folders)) + " folders, hourly:" + str(hourly))
+    current_hour =-1
+    current_day= -1
 
-    for file in data_folders:
+    for file in sorted(data_folders):
         index+=1
         try:
+            if(hourly): #Only go through this is hourly flag is set
+                summaryTime= datetime.strptime(file.split(os.sep)[-1].split(".")[0], "%Y-%m-%d-%H-%M-%S")
+                if (current_hour!= summaryTime.hour or current_day!= summaryTime.day) :
+                    print("[DB Populate]["+ network + "][Hourly process] Process Hour: " + str(summaryTime.hour) + " Day: " + str(summaryTime.day) + "compare to Hour:" + str(current_hour) + " on Day:" + str(current_day))
+                    current_hour= summaryTime.hour
+                    current_day =summaryTime.day
+                else:
+                    print("[DB Populate]["+ network + "][Hourly process] Continue Hour:" + str(summaryTime.hour) + " on Day:" + str(summaryTime.day) + "compare to last seen " + str(current_hour) + " on " + str(current_day))
+                    continue
             date,nodes,chans = get_net_data(file)
             # print("Got file: " + file + "\twith " + str(len(nodes)) + " nodes\t"+str(len(chans)) + " channels")
 
@@ -170,9 +181,12 @@ def populate_db():
         print(Node.objects.all().delete())    #TODO REMOVE, ONLY USE FOR TESTING
         print(Channel.objects.all().delete()) #TODO REMOVE, ONLY USE FOR TESTING
 
+    hourly=True
+    if(input("Add all times (default is hourly)? [y/n] ") == "y"):
+        hourly=False
     if(input("Add new entries? [y/n] ") == "y"):
-        createDBentries(data_location,"testnet")
-        createDBentries(data_location_mainnet,"mainnet")
+        createDBentries(data_location,"testnet",hourly)
+        createDBentries(data_location_mainnet,"mainnet",hourly)
 
 # populate_db()
 '''
@@ -186,13 +200,19 @@ exec(open(scriptName).read())
 # data_update(getCurrentDate(timedelta(days=1)))
 if __name__ == "__main__":
     if(len(sys.argv) > 1 ):
+        if(len(sys.argv) > 2 ):
+            hourly = (sys.argv[2]!="alldata")
+        else:
+            hourly=True
+
+        print("[DB Populate] Hourly interval:\t" + str(hourly))
         if(sys.argv[1] == "mainnet"):
             print("[DB Populate] Adding mainnet data")
-            createDBentries(data_location_mainnet,"mainnet")
+            createDBentries(data_location_mainnet,"mainnet",hourly)
 
         elif(sys.argv[1] == "testnet"):
             print("[DB Populate] Adding testnet data")
-            createDBentries(data_location,"testnet")
+            createDBentries(data_location,"testnet", hourly)
         elif(sys.argv[1] == "unsafe_reset_db"):
             print("[DB Populate] Removing all data")
             print(Node.objects.all().delete())

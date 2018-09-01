@@ -29,10 +29,10 @@
   <tbody>
     {% for channel in channels %}
     <tr>
-      <th scope="row" class="td-normal"> <a href="/{{network}}/channels/{{ channel.chan_id  }}">{{ channel.chan_id }} </a></th>
+      <th scope="row" class="td-normal"> <a href="/{{network}}/channel/{{ channel.chan_id  }}/{{ date_logged_unix }}">{{ channel.chan_id }} </a></th>
       <td  class="td-normal">{{ channel.capacity }} Satoshi</td>
-      <td  class="td-small"> <a href="/{{network}}/nodes/{{ channel.node1_pub  }}">{{ channel.node1_pub }}</a></td>
-      <td  class="td-small"> <a href="/{{network}}/nodes/{{ channel.node2_pub  }}">{{ channel.node2_pub }}</a></td>
+      <td  class="td-small"> <a href="/{{network}}/node/{{ channel.node1_pub }}/{{ date_logged_unix }}">{{ channel.node1_pub }}</a></td>
+      <td  class="td-small"> <a href="/{{network}}/node/{{ channel.node2_pub }}/{{ date_logged_unix }}">{{ channel.node2_pub }}/</a></td>
       <!-- <a href="https://live.blockcypher.com/btc-testnet/tx/{{ channel.chan_point }}"> </a> -->
       <td  class="td-small"> {{ channel.chan_point }}</td>
       <td  class="td-small"> {{ channel.last_update }}</td>
@@ -56,6 +56,10 @@
           <li class="page-item"><a class="page-link" href="?page={{ channels.next_page_number }}">Next</a></li>
           <li class="page-item"><a class="page-link" href="?page={{ channels.paginator.num_pages }}">Last &raquo;</a></li>
       {% endif %}
+
+      <div class="nav-item" style="display: flex; align-items: center; padding-left: .5rem;"> <div class="badge badge-success">
+          Data Collected at {{ date_logged }} on the Bitcoin {{ network }}.
+        </div> </div>
     </ul>
 </nav>
 

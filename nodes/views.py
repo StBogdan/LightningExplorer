@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from nodes.models import *
 from datetime import datetime
 from utils_db_upkeep import *
+from django.shortcuts import redirect
 import thunder as thunder
 
 import json
@@ -106,8 +107,17 @@ def about(request):
     return render(request, 'nodes/about.html', {})
 
 
-def visualiser(request,network):
-    networkData = get_network_data(get_last_logged_date(network),network)
+
+
+def visualiser(request,network,date_logged= ""):
+    if(date_logged== ""):
+        return redirect("/" + network+'/visualiser/'+ get_last_logged_date(network).strftime("%s"))
+    if(type(date_logged) is int or date_logged == ""):
+        date_logged = datetime.fromtimestamp(int(date_logged))
+
+
+
+    networkData = get_network_data(date_logged,network)
     nodePoz = get_graph_cache(network)
 
     # networkData =' { "glossary": { "title": "example glossary", "GlossDiv": { "title": "S", "GlossList": { "GlossEntry": { "ID": "SGML", "SortAs": "SGML", "GlossTerm": "Standard Generalized Markup Language", "Acronym": "SGML", "Abbrev": "ISO 8879:1986", "GlossDef": { "para": "A meta-markup language, used to create markup languages such as DocBook.", "GlossSeeAlso": ["GML", "XML"] }, "GlossSee": "markup" } } } } }'
@@ -119,7 +129,7 @@ def visualiser(request,network):
 
     print("Data filtered and prepared ")
     # print( [vars(x) for x in networkData["edges"]])
-    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network , "date_logged": get_last_logged_date(network), "chan_count" : len(e), "nodes_count": len(n)})
+    return render(request, 'nodes/visualiser.html', {"jsonData" : json.dumps({"nodes": n ,"edges": e},default=str)  , "cachedPoz": json.dumps(nodePoz), "network": network , "date_logged": date_logged, "chan_count" : len(e), "nodes_count": len(n)})
 
 def prepareForPassing(nodeEntries,edgeEntries):
     edgeList = []
@@ -133,10 +143,21 @@ def prepareForPassing(nodeEntries,edgeEntries):
 
 def db2json_node(nodeEntry):
     nodeJSON = vars(nodeEntry)
+    nodeJSON["addresses"]=[db2json_adr(adr) for adr in nodeEntry.address_set.all()]
     nodeJSON.pop("_state")
     nodeJSON.pop("id")
     nodeJSON.pop("date_logged")
     return nodeJSON
+
+def db2json_adr(addressEntry):
+    adrJSON = vars(addressEntry)
+    adrJSON.pop('id')
+    adrJSON.pop('node_id')
+    adrJSON.pop("_state")
+    adrJSON.pop('date_logged')
+    print(adrJSON)
+    return adrJSON
+
 
 def db2json_edge(edgeEntry):
     edgeJSON = vars(edgeEntry)
@@ -155,8 +176,14 @@ def prepareGraphData(nodeEntries,edgeEntries):
     return nodeList,edgeList
 
 
-def nodes(request,network):
-        [networkData,unconnectedNodes] = filterNodes(get_network_data(get_last_logged_date(network),network))
+def nodes(request,network, date_logged=""):
+        if(date_logged== ""):
+            return redirect("/" + network+'/nodes/' + get_last_logged_date(network).strftime("%s"))
+        if(type(date_logged) is int or date_logged == ""):
+            date_logged_unix=date_logged
+            date_logged = datetime.fromtimestamp(int(date_logged))
+
+        [networkData,unconnectedNodes] = filterNodes(get_network_data(date_logged,network))
         paginator_ucn = Paginator(networkData["nodes"], 15)
         print(len(networkData["nodes"]))
 
@@ -165,10 +192,17 @@ def nodes(request,network):
         print(nodes_page)
         nodes_page.object_list = [db2json_node(x) for x in nodes_page.object_list]
 
-        return render(request, 'nodes/nodes.html', {"nodes" : nodes_page, "network":network})
+        return render(request, 'nodes/nodes.html', {"nodes" : nodes_page, "network":network, "date_logged": date_logged, "date_logged_unix": date_logged_unix})
 
-def channels(request,network):
-        graphData = get_network_data(get_last_logged_date(network),network)
+def channels(request,network, date_logged=""):
+        if(date_logged== ""):
+            return redirect("/" + network+'/channels/' + get_last_logged_date(network).strftime("%s"))
+        if(type(date_logged) is int or date_logged == ""):
+            date_logged_unix= date_logged
+            date_logged = datetime.fromtimestamp(int(date_logged))
+
+
+        graphData = get_network_data(date_logged,network)
         # print(graphData)
         paginator_edges = Paginator(graphData["edges"], 15)
 
@@ -176,7 +210,7 @@ def channels(request,network):
         channels_page = paginator_edges.get_page(page)
         channels_page.object_list = [db2json_edge(x) for x in channels_page.object_list]
 
-        return render(request, 'nodes/channels.html', {"channels" : channels_page , "network":network})
+        return render(request, 'nodes/channels.html', {"channels" : channels_page , "network":network, "date_logged" : date_logged, "date_logged_unix": date_logged_unix})
 
 def metrics(request,network):
         filter_sieve=1
@@ -246,7 +280,7 @@ def metric_detail(request, metricID,network):
 
 def nodes_detail(request, nodePubKey, network, date_logged= ""):
         if(date_logged== ""):
-            date_logged =Node.objects.filter( network= network ).values("date_logged").first()["date_logged"]
+            return redirect("/" + network+'/node/' + nodePubKey + "/"+ get_last_logged_date(network).strftime("%s"))
         if(type(date_logged) is int or date_logged == ""):
             date_logged = datetime.fromtimestamp(int(date_logged))
 
@@ -289,7 +323,7 @@ def nodes_detail(request, nodePubKey, network, date_logged= ""):
 
 def channel_detail(request, chanID,date_logged= "",network = "testnet"):
         if(date_logged==""):
-            date_logged= Node.objects.filter(network= network).values("date_logged").first()["date_logged"]
+            return redirect("/" + network+'/channel/' + chanID + "/"+ get_last_logged_date(network).strftime("%s"))
         if(type(date_logged) is int ):
             date_logged = datetime.fromtimestamp(int(date_logged))
         networkData = get_network_data(date_logged,network)
@@ -300,6 +334,7 @@ def channel_detail(request, chanID,date_logged= "",network = "testnet"):
 
         # data_dates = [{"date_display": x["date_logged"].strftime("%Y-%m-%d %H-%M-%S"), "date_unix": x["date_logged"].strftime("%s")} for x in Channel.objects.filter(chan_id = chanID).values("date_logged").distinct()]
         n,e = prepareForPassing(nodes,edges)
+        print([x for x in n])
         print(date_logged.strftime("%Y-%m-%d %H:%M"))
         return render(request, 'nodes/channels_detail.html', {"nodes" : json.dumps(n),
                     "edges" : json.dumps(e),

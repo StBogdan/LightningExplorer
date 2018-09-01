@@ -175,7 +175,7 @@ def process_dataset(dataSetPath,hourly= False):
                         current_hour= summaryTime.hour
                         current_day =summaryTime.day
                     else:
-                        # print("BEEP BOOP CONTINUE " + str(summaryTime.hour) + " on " + str(summaryTime.day) + "compare to " + str(current_hour) + " on " + str(current_day))
+                        # print("CONTINUE " + str(summaryTime.hour) + " on " + str(summaryTime.day) + "compare to " + str(current_hour) + " on " + str(current_day))
                         continue
                 network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
                 graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + graphFile)

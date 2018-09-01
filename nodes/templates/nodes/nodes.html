@@ -29,16 +29,17 @@
       <tbody>
         {% for currentNode in nodes %}
         <tr>
-          <th scope="row" class="td-small"> <a href="/{{network}}/nodes/{{ currentNode.pub_key }}">{{ currentNode.pub_key }} </a></th>
+          <th scope="row" class="td-small"> <a href="/{{network}}/node/{{ currentNode.pub_key }}/{{ date_logged_unix }}">{{ currentNode.pub_key }} </a></th>
           <td class="td-normal">{{ currentNode.alias }}</td>
           <td class="td-normal">{{ currentNode.channels }}</td>
           <td class="td-normal">{{ currentNode.capacity }}</td>
-          <td class="td-small">{{ currentNode.color }}</td>
+          <td class="td-small">{{ currentNode.color }}  <span class="colour-dot" style="background-color: {{ currentNode.color }} "></span></td>
           <td class="td-small">{{ currentNode.addresses }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
 
   <nav aria-label="Nodes pagination">
     <ul class="pagination justify-content-center">
@@ -55,8 +56,15 @@
             <li class="page-item"><a class="page-link" href="?page={{ nodes.next_page_number }}">Next</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ nodes.paginator.num_pages }}">Last &raquo;</a></li>
         {% endif %}
+
+        <div class="nav-item" style="display: flex; align-items: center; padding-left: .5rem;"> <div class="badge badge-success">
+            Data Collected at {{ date_logged }} on the Bitcoin {{ network }}.
+          </div> </div>
       </ul>
   </nav>
+
+
+
 
 
 <!-- Bootstrap scripts -->

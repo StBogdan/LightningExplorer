@@ -1,6 +1,11 @@
+function get_logged_time_unix(){
+  var split_url = window.location.href.split("/");
+  return   split_url[split_url.length - 1]
+}
 // Needs a defined "network" variable
 // Put after definitions
 // Get info on mouse click
+
 network.on("click", function (params) {
     params.event = "[original event]";
     // document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
@@ -19,8 +24,8 @@ network.on("click", function (params) {
       console.log('double click event, getNodeAt returns: ' + inspectMe);
       if(inspectMe != null){
         console.log("Double Clicked on a node");
-        console.log("Redirecting to:\t" + network+"/nodes/" + inspectMe);
-        document.location.href= "/"+ network + "/nodes/" + inspectMe ;
+        console.log("Redirecting to:\t" + network+"/node/" + inspectMe);
+        document.location.href= "/"+ network + "/node/" + inspectMe + "/"+ get_logged_time_unix() ;
       }
       else{
         inspectMe3 = params;
@@ -28,52 +33,52 @@ network.on("click", function (params) {
 
         if(params["edges"].length > 0){
           console.log("Double Clicked on edge/channel: " + params["edges"][0] );
-          document.location.href= "/"+ network + "/channels/" + params["edges"][0]  ;
+          document.location.href= "/"+ network + "/channel/" + params["edges"][0]+  "/"+ get_logged_time_unix() ;
         }
       }
   });
 
-//Node selection tools
-document.getElementById("node_capacity").onclick = function(evt){
-  var activePoints = chart_capacity.getElementsAtEvent(evt);
-  var result =activePoints[0];
-  console.log(result);
-  if(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x){
-    var site_now =window.location.href ;
-    var time_now = chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x;
 
-    var new_site= site_now.split("/");
-    console.log(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x);
-    //Get the unix time for the UTC timezone
-    var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
-    if(site_now.split("/").length == 7){
-      new_site[6]=time_picked_unix;
-    }
-    else{
-      new_site.push(time_picked_unix);
-    }
-    window.location.href = new_site.join("/");
-  }
-};
+  //Node selection tools
+  document.getElementById("node_capacity").onclick = function(evt){
+    var activePoints = chart_capacity.getElementsAtEvent(evt);
+    var result =activePoints[0];
+    console.log(result);
+    if(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x){
+      var site_now =window.location.href ;
+      var time_now = chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x;
 
-document.getElementById("node_channels").onclick = function(evt){
-  var activePoints = chart_channels.getElementsAtEvent(evt);
-  var result =activePoints[0];
-  console.log(result);
-  if(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x){
-    var site_now =window.location.href ;
-    var time_now = chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x;
+      var new_site= site_now.split("/");
+      console.log(chart_capacity.data.datasets[result._datasetIndex]["data"][result._index].x);
+      //Get the unix time for the UTC timezone
+      var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
+      if(site_now.split("/").length == 7){
+        new_site[6]=time_picked_unix;
+      }
+      else{
+        new_site.push(time_picked_unix);
+      }
+      window.location.href = new_site.join("/");
+    }};
 
-    var new_site= site_now.split("/");
-    console.log(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x);
-    //Get the unix time for the UTC timezone
-    var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
-    if(site_now.split("/").length == 7){
-      new_site[6]=time_picked_unix;
+  document.getElementById("node_channels").onclick = function(evt){
+    var activePoints = chart_channels.getElementsAtEvent(evt);
+    var result =activePoints[0];
+    console.log(result);
+    if(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x){
+      var site_now =window.location.href ;
+      var time_now = chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x;
+
+      var new_site= site_now.split("/");
+      console.log(chart_channels.data.datasets[result._datasetIndex]["data"][result._index].x);
+      //Get the unix time for the UTC timezone
+      var time_picked_unix =(new Date(time_now + "Z")).getTime() / 1000
+      if(site_now.split("/").length == 7){
+        new_site[6]=time_picked_unix;
+      }
+      else{
+        new_site.push(time_picked_unix);
+      }
+      window.location.href = new_site.join("/");
     }
-    else{
-      new_site.push(time_picked_unix);
-    }
-    window.location.href = new_site.join("/");
-  }
-};
+  };

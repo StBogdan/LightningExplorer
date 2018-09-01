@@ -26,7 +26,7 @@
   <div class="card-body">
     <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
     <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}">  {{ nodeInfo.pub_key}}</a> </h6>
-    <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
+    <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} <span class="colour-dot" style="background-color: {{ nodeInfo.color }} "></span> </h6>
     <h6 class="card-subtitle mb-2 text-muted">Advertised addresses </h6>
     <p class="card-text">
       <ul>
@@ -50,9 +50,9 @@
 {% for chanInfo in foundChannels %}
 <div class="card mx-auto"> <!-- Channel card -->
   <div class="card-body">
-    <h5 class="card-title">Channel ID: <a href="/{{network}}/channels/{{ chanInfo.chan_id }}"> {{ chanInfo.chan_id }} </a> </h5>
-    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/{{network}}/nodes/{{ chanInfo.node1_pub }}">  {{ chanInfo.node1_pub}}</a> </h6>
-    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/{{network}}/nodes/{{ chanInfo.node2_pub }}">  {{ chanInfo.node2_pub}}</a> </h6>
+    <h5 class="card-title">Channel ID: <a href="/{{network}}/channel/{{ chanInfo.chan_id }}"> {{ chanInfo.chan_id }} </a> </h5>
+    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/{{network}}/node/{{ chanInfo.node1_pub }}">  {{ chanInfo.node1_pub}}</a> </h6>
+    <h6 class="card-subtitle mb-2 text-muted">  PubKey: <a href="/{{network}}/node/{{ chanInfo.node2_pub }}">  {{ chanInfo.node2_pub}}</a> </h6>
     <h6 class="card-subtitle mb-2 text-muted"> Capacity: {{ chanInfo.capacity}} SAT </h6>
 
   </div>

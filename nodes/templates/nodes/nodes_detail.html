@@ -21,9 +21,7 @@
    </div>
 
   <script type="text/javascript">
-    // create an array with nodes
     var nodes = new vis.DataSet([]);
-    // create an array with edges
     var edges = new vis.DataSet([]);
 
     //Get network data
@@ -60,7 +58,20 @@
          color : {
            opacity:0.4
          }
-       }
+       },
+       nodes: {
+            shape: 'dot',
+            scaling: {
+              customScalingFunction: function (min,max,total,value) {
+                return value/total;
+              },
+              min:25,
+              max:1000
+            },
+            shapeProperties: {
+              interpolation: false    // 'true' for intensive zooming
+            }
+          }
     }
     var network = new vis.Network(container, data, options);
 
@@ -73,11 +84,14 @@
 <div class="row" style="min-height:30vh">
   <div class="card col-md-6" style="width: 48%;">
     <div class="card-body">
+      <button type="button" class="btn btn-outline-info btn-sm float-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
+      Physics Enabled
+    </button>
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{network}}/node/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
       <h6 class="card-subtitle mb-2 ">Number of channels: {{ nodeInfo.channels}} </h6>
       <h6 class="card-subtitle mb-2 ">Total capacity: {{ nodeInfo.capacity}} SAT </h6>
-      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
+      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} <span class="colour-dot" style="background-color: {{ nodeInfo.color }} "></span> </h6>
         <p> Advertised addresses:</p>
         <ul>
         {% for address in nodeInfo.addresses %}
@@ -89,17 +103,18 @@
   <div class="card col-md-6" style="width: 48%;">
     <div class="card-body" style="overflow-y:scroll;">
       <div class="card-title badge badge-success">
-          <h5>Data Collected at {{ date_logged.date_display }} on the Bitcoin {{ network }}.</h5>
+            <h6>Data Collected at {{ date_logged.date_display }}</h6>
       </div>
-      <button type="button" class="btn btn-outline-info btn-sm float-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
-      Physics Enabled
-    </button>
+      <a href="/{{network}}/nodes/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Node list</a>
+      <a href="/{{network}}/channels/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Channel list</a>
+      <a href="/{{network}}/visualiser/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Network graph at time</a>
+
       <h6 class="card-subtitle mb-2 text-muted ">View at other times/dates (or click on points in the graphs below to explore the corresponding time)</h6>
       <div class="time-box">
         <ul>
           {% for oneDate in data_dates %}
             <li>
-              <a href="/{{network}}/nodes/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}"> <div class="badge badge-info">On {{ oneDate.date_display }}</div></a> Unix timestamp: {{oneDate.date_unix }}
+              <a href="/{{network}}/node/{{ nodeInfo.pub_key }}/{{oneDate.date_unix}}"> <div class="badge badge-info">On {{ oneDate.date_display }}</div></a> Unix timestamp: {{oneDate.date_unix }}
             </li>
           {% empty %}
             <p> No other dates available </p>
@@ -169,9 +184,9 @@
   <tbody>
     {% for edge in edgeTable %}
     <tr>
-      <th scope="row" class= "td-normal"> <a href="/{{network}}/channels/{{ edge.chan_id }}/{{ date_logged.date_unix }}">{{ edge.chan_id}} </a></th>
-      <td class= "td-small"> <a href="/{{network}}/nodes/{{ edge.node1_pub }}/{{date_logged.date_unix }}">{{ edge.node1_pub }} </a> </td>
-      <td class= "td-small"> <a href="/{{network}}/nodes/{{ edge.node2_pub }}/{{date_logged.date_unix }}">{{ edge.node2_pub }} </a> </td>
+      <th scope="row" class= "td-normal"> <a href="/{{network}}/channel/{{ edge.chan_id }}/{{ date_logged.date_unix }}">{{ edge.chan_id}} </a></th>
+      <td class= "td-small"> <a href="/{{network}}/node/{{ edge.node1_pub }}/{{date_logged.date_unix }}">{{ edge.node1_pub }} </a> </td>
+      <td class= "td-small"> <a href="/{{network}}/node/{{ edge.node2_pub }}/{{date_logged.date_unix }}">{{ edge.node2_pub }} </a> </td>
       <td class= "td-normal">{{ edge.capacity}} SAT</td>
       <td class= "td-small">{{ edge.chan_point}}</td>
     </tr>
@@ -195,7 +210,6 @@ var physics_on = true;
 $('#physics_toggle').on('click', function (e) {
   physics_on = !physics_on;
   network.setOptions({physics:{enabled: physics_on}});
-
 })
 </script>
 

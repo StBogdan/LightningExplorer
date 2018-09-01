@@ -14,14 +14,21 @@ urlpatterns = [
     path('<slug:network>/visualiser', views.visualiser, name='visualiser'),
 
     #Nodes
-    path('<slug:network>/nodes/<slug:nodePubKey>/<int:date_logged>', views.nodes_detail, name='node-detail'),
-    path('<slug:network>/nodes/<slug:nodePubKey>', views.nodes_detail, name='node-detail'),
+        #Details
+    path('<slug:network>/node/<slug:nodePubKey>/<int:date_logged>', views.nodes_detail, name='node-detail'),
+    path('<slug:network>/node/<slug:nodePubKey>', views.nodes_detail, name='node-detail'),
+        #Generals
     path('<slug:network>/nodes', views.nodes, name='nodes'),
+    path('<slug:network>/nodes/<int:date_logged>', views.nodes, name='nodes'),
 
     #Channels
-    path('<slug:network>/channels/<slug:chanID>/<int:date_logged>', views.channel_detail, name='channel-detail'),
-    path('<slug:network>/channels/<slug:chanID>', views.channel_detail, name='channel-detail'),
+        #Details
+    path('<slug:network>/channel/<slug:chanID>/<int:date_logged>', views.channel_detail, name='channel-detail'),
+    path('<slug:network>/channel/<slug:chanID>', views.channel_detail, name='channel-detail'),
+        #Generals
     path('<slug:network>/channels', views.channels, name='channels'),
+    path('<slug:network>/channels/<int:date_logged>', views.channels, name='channel-detail'),
+
 
     #Metrics
     path('<slug:network>/metrics', views.metrics, name='metrics'),

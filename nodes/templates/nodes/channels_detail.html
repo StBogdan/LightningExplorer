@@ -69,9 +69,13 @@
     network.setOptions({edges:{smooth:{type:'dynamic'}}});
 
   </script>
+<div style="width:90%;margin:0 auto;">  <!-- Container metrics -->
 <div class="row" >
   <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
+      <button type="button" class="btn btn-outline-info btn-sm float-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
+          Physics Enabled
+        </button>
       <h5 class="card-title">Chan ID: {{ edgeInfo.chan_id }}</h5>
       <h6 class="card-subtitle mb-2 text-muted">Capacity: {{ edgeInfo.capacity }} SAT</h6>
       <p class="card-text">
@@ -81,17 +85,17 @@
   <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
       <div class="card-title badge badge-success">
-          <h5>Data Collected at {{ date_logged.date_display }} on the Bitcoin {{ network }}.</h5>
+          <h6>Data Collected at {{ date_logged.date_display }}</h6>
       </div>
-      <button type="button" class="btn btn-outline-info btn-sm float-right" data-toggle="button" aria-pressed="false" autocomplete="off" id="physics_toggle">
-      Physics Enabled
-    </button>
+      <a href="/{{network}}/nodes/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Node list</a>
+      <a href="/{{network}}/channels/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Channel list</a>
+      <a href="/{{network}}/visualiser/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Network graph at time</a>
       <h6 class="card-subtitle mb-2 text-muted">View at other dates</h6>
       <div class="time-box">
         <ul>
           {% for oneDate in data_dates %}
           <li>
-          <a href="/{{ network }}/channels/{{ edgeInfo.chan_id }}/{{ oneDate.date_unix }}"> <div class="badge badge-info">On {{ oneDate.date_display }}</div></a> Unix timestamp: {{oneDate.date_unix }}
+          <a href="/{{ network }}/channel/{{ edgeInfo.chan_id }}/{{ oneDate.date_unix }}"> <div class="badge badge-info">On {{ oneDate.date_display }}</div></a> Unix timestamp: {{oneDate.date_unix }}
           </li>
           {% empty %}
             <p> No other dates available </p>
@@ -107,8 +111,8 @@
   <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
       <h5 class="card-title">Node ID: {{ nodeInfo.alias }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{ network }}/nodes/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
-      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} </h6>
+      <h6 class="card-subtitle mb-2 text-muted">PubKey: <a href="/{{ network }}/node/{{ nodeInfo.pub_key }}/{{ date_logged.date_unix }}">  {{ nodeInfo.pub_key}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted">Color {{ nodeInfo.color }} <span class="colour-dot" style="background-color: {{ nodeInfo.color }} "></span> </h6>
       <p class="card-text">
         <p> Advertised addresses:</p>
         <ul>
@@ -121,8 +125,10 @@
 {% endfor %}
 </div>  <!-- Row -->
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+</div>  <!-- Container metrics -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
 
 <script src="{% static "nodes/visUtilsPost.js" %}"></script>
 <!-- Bootstrap scripts -->
@@ -136,7 +142,6 @@ var physics_on = true;
 $('#physics_toggle').on('click', function (e) {
   physics_on = !physics_on;
   network.setOptions({physics:{enabled: physics_on}});
-
 })
 </script>
 </body>
