@@ -25,7 +25,8 @@ network.on("click", function (params) {
       if(inspectMe != null){
         console.log("Double Clicked on a node");
         console.log("Redirecting to:\t" + network+"/node/" + inspectMe);
-        document.location.href= "/"+ network + "/node/" + inspectMe + "/"+ get_logged_time_unix() ;
+        // document.location.href= "/"+ network + "/node/" + inspectMe + "/"+ get_logged_time_unix() ;
+        window.open("/"+ network + "/node/" + inspectMe + "/"+ get_logged_time_unix(),'_blank');
       }
       else{
         inspectMe3 = params;
@@ -33,7 +34,8 @@ network.on("click", function (params) {
 
         if(params["edges"].length > 0){
           console.log("Double Clicked on edge/channel: " + params["edges"][0] );
-          document.location.href= "/"+ network + "/channel/" + params["edges"][0]+  "/"+ get_logged_time_unix() ;
+          // document.location.href= "/"+ network + "/channel/" + params["edges"][0]+  "/"+ get_logged_time_unix() ;
+          window.open("/"+ network + "/channel/" + params["edges"][0]+  "/"+ get_logged_time_unix(),'_blank');
         }
       }
   });

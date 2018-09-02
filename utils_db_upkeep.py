@@ -149,7 +149,7 @@ def data_update(full_date = get_current_date() ):
 
 def dataset_update(metric_list):
     for network in data_location:
-        data_set = metrics.process_dataset(data_location[network])
+        data_set = metrics.process_dataset(data_location[network],True)
         print("Got metric list:\t"+ str(metric_list))
         for metric in metric_list:
             metrics.generate_and_save(metric,network,data_set)
@@ -185,4 +185,4 @@ if __name__ == "__main__":
         db_update_metrics()
 
     print("[Server Upkeep][4/5] Updating datasets for metrics")
-    # dataset_update(get_metric_list())
+    dataset_update(get_metric_list())
