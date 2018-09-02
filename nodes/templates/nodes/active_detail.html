@@ -59,12 +59,12 @@
   {% for chanInfo in node.channels %}
   <div class="card mx-auto"> <!-- Channel card -->
     <div class="card-body">
-      <h5 class="card-title">Channel ID: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/channels/{{ chanInfo.chan_id }}">
+      <h5 class="card-title">Channel ID: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/channel/{{ chanInfo.chan_id }}">
         {{ chanInfo.chan_id }} </a>
 
     <span class="badge badge-pill {% if chanInfo.active %} badge-success">Active {% else %} badge-warning">Offline{%endif%}</span>
     <span class="badge badge-pill {% if chanInfo.private %} badge-dark">Private {% else %} badge-info">Public{%endif%}</span>
-      <h6 class="card-subtitle mb-2 text-muted"> PubKey: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/nodes/{{ chanInfo.remote_pubkey }}">  {{ chanInfo.remote_pubkey}}</a> </h6>
+      <h6 class="card-subtitle mb-2 text-muted"> PubKey: <a href="/{% if node.info.testnet %}testnet{% else %}mainnnet{% endif %}/node/{{ chanInfo.remote_pubkey }}">  {{ chanInfo.remote_pubkey}}</a> </h6>
       <h6 class="card-subtitle mb-2 text-muted"> Capacity: {{ chanInfo.capacity}} SAT </h6>
       <h6 class="card-subtitle mb-2 text-muted"> Channel Point: {{ chanInfo.channel_point}} SAT </h6>
       <h6 class="card-subtitle mb-2 text-muted"> Number of updates: {{ chanInfo.num_updates}}</h6>
