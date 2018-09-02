@@ -150,6 +150,10 @@ def createDBentries(full_data_path,network,hourly=False):
         try:
             if(hourly): #Only go through this is hourly flag is set
                 summaryTime= datetime.strptime(file.split(os.sep)[-1].split(".")[0], "%Y-%m-%d-%H-%M-%S")
+                if(len(Node.objects.filter(date_logged = summaryTime)) > 0):
+                    print("[Data Update]["+ network + "] Date already in database\t"+ str(summaryTime))
+                    continue
+
                 if (current_hour!= summaryTime.hour or current_day!= summaryTime.day) :
                     print("[DB Populate]["+ network + "][Hourly process] Process Hour: " + str(summaryTime.hour) + " Day: " + str(summaryTime.day) + "compare to Hour:" + str(current_hour) + " on Day:" + str(current_day))
                     current_hour= summaryTime.hour

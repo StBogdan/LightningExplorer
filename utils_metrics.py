@@ -180,6 +180,8 @@ def process_dataset(dataSetPath,hourly= False):
                 network_data = load_json_file(dataSetPath+ os.sep + folder + os.sep + statFile)
                 graph_data =  load_json_file(dataSetPath+ os.sep + folder + os.sep + graphFile)
 
+                if(len(graph_data["edges"])>11000):
+                    raise Exception(" Possible unclosed channel count, disregarding file")
                 nodes_cap_dict= get_nodes_capacities(graph_data)
                 new_edges_count,new_edges_cap,deleted_edges_count,deleted_edges_cap = get_chan_dif(graph_data,prev_graph,chan_set)
                 prev_graph,prev_netinfo = graph_data,network_data   #Update for next check
