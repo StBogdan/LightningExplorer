@@ -16,8 +16,8 @@ from nodes.models import *
 # django.setup()
 # from nodes.models import *
 
-from utils_config import *
-data_location= {"testnet": site_config["lndmon_data_location"] , "mainnet":  site_config["lndmon_data_location_mainnet"]}
+import utils_config as config
+data_location= {"testnet": config.site_config["lndmon_data_location"] , "mainnet":  config.site_config["lndmon_data_location_mainnet"]}
 
 
 def db_put_metrics(metric_list):
@@ -103,21 +103,35 @@ def add_new_day(target_date): #Date is YYYY-MM-DD format string
     except Exception as e:
         print("ERROR ON DATE: " + target_date + " \t" + str(e))
 
-def add_latest_data():
-    #Get the first file (.graph will be before .netinfo)
-    prefix= "/Users/stbogdan/OneDrive/542_MSc_Indivdual_Project/Data/testing_mainnet/2018-08-01"
-    for file in os.listdir(prefix):
+def add_latest_data(directory_fpath= "", network="testnet" ,hourly=False):
+    current_day=-1
+    current_hour=-1
+    for file in sorted(os.listdir(directory_fpath)):
         try:
-            if(file.endswith(".graph")):
-                file_path= prefix + os.sep + file
-                print("Got target file:\t"+ file_path)
-                date,nodes,chans = db_pop.get_net_data(file_path)
-                node_extra_info = [db_pop.get_node_capacity(node["pub_key"],chans) for node in nodes]
-                nodes_entries, address_entries = db_pop.createNodeEntries(nodes,date,[ x for [x,y] in node_extra_info ] , [ y for [x,y] in node_extra_info ],"mainnet" )
-                edges_entries, policies = db_pop.createChanEntries(chans,date,nodes_entries,"mainnet")
-                print("Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
+            if(not file.endswith(".graph")):
+                continue
+
+            summaryTime= datetime.strptime(file.split(".")[0], "%Y-%m-%d-%H-%M-%S")
+            if (current_hour!= summaryTime.hour or current_day!= summaryTime.day) :
+                print("[Data Update]["+ network + "][Hourly process] Process Hour: " + str(summaryTime.hour) + " Day: " + str(summaryTime.day) + " previous\t Hour:" + str(current_hour) + " on Day:" + str(current_day))
+                current_hour= summaryTime.hour
+                current_day =summaryTime.day
+            else:
+                # print("[Data Update]["+ network + "][Hourly process] Continue Hour:" + str(summaryTime.hour) + " on Day:" + str(summaryTime.day) + "compare to last seen " + str(current_hour) + " on " + str(current_day))
+                continue
+            if(len(Node.objects.filter(date_logged = summaryTime)) > 0):
+                print("[Data Update]["+ network + "] Date already in database\t"+ str(summaryTime))
+                continue
+
+            file_path= directory_fpath + os.sep + file
+            print("Got target file:\t"+ file_path)
+            date,nodes,chans = db_pop.get_net_data(file_path)
+            node_extra_info = [db_pop.get_node_capacity(node["pub_key"],chans) for node in nodes]
+            nodes_entries, address_entries = db_pop.createNodeEntries(nodes,date,[ x for [x,y] in node_extra_info ] , [ y for [x,y] in node_extra_info ],network )
+            edges_entries, policies = db_pop.createChanEntries(chans,date,nodes_entries,network)
+            print("[Data Update]["+ network + "][ Created entries for "+ str(len(nodes_entries)) + " nodes and " + str(len(edges_entries)) + " channels " + " date:" + date.strftime("%Y-%m-%d %H:%M:%S") )
         except Exception as e:
-            print("ERROR:" + str(e))
+            print("[Data Update]["+ network + "] ERROR:" + str(e))
 
 
 def data_update(full_date = get_current_date() ):
@@ -160,6 +174,10 @@ if __name__ == "__main__":
         print("[Server Upkeep][Force-update] Adding current day info")
         add_latest_data()
 
+    if(len(sys.argv) > 1 and sys.argv[1] == "hourly"):
+        print("[Server Upkeep][Force-update] Adding current day info for network: ")
+        add_latest_data(config.site_config["logging_dir"],config.site_config["node_network"], True)
+
     #Check metric presence
     print("[Server Upkeep][3/5] Checking metric presence")
     if(len(Metric.objects.all()) == 0):
@@ -167,5 +185,4 @@ if __name__ == "__main__":
         db_update_metrics()
 
     print("[Server Upkeep][4/5] Updating datasets for metrics")
-    #Update datasets used by metrics
-    dataset_update(get_metric_list())
+    # dataset_update(get_metric_list())

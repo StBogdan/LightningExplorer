@@ -84,12 +84,13 @@
   </div>
   <div class="card col-sm-6" style="width: 50%;">
     <div class="card-body">
-      <div class="card-title badge badge-success">
-          <h6>Data Collected at {{ date_logged.date_display }}</h6>
+      <div class="card-title">
+          <h7 class="btn btn-success disabled">Data Collected at {{ date_logged.date_display }}</h7>
+          <a href="/{{network}}/nodes/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Node list</a>
+          <a href="/{{network}}/channels/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Channel list</a>
+          <a href="/{{network}}/visualiser/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Network graph at time</a>
       </div>
-      <a href="/{{network}}/nodes/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Node list</a>
-      <a href="/{{network}}/channels/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Channel list</a>
-      <a href="/{{network}}/visualiser/{{date_logged.date_unix}}" class="btn btn-outline-success btn-sm ">Network graph at time</a>
+
       <h6 class="card-subtitle mb-2 text-muted">View at other dates</h6>
       <div class="time-box">
         <ul>
