@@ -74,33 +74,35 @@ def obtainNetworkStatistics(target_config_file): #The output from the output of 
 
 # Create your views here.
 def index(request):
-    try:
+    netstats={"mainnet": [], "testnet":[]}
+    try:    #First set of statistics LOCAL NODE NETWORK
         networkStats,date_logged = obtainNetworkStatistics(site_config["network_info_path"]) #Date_logged is unix timestamp as float
         #Convert Sat to BTC
         networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
         networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
         networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
 
-        freshness_testnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        netstats[site_config["node_network"]] = [networkStats, freshness]
     except Exception as e:
-        print("Error on testnet stat fetch:\t"+ str(e))
-        networkStats={}
-        freshness_testnet="some time ago"
+        print("Error on " + site_config["node_network"] + " stat fetch:\t"+ str(e))
+        netstats[site_config["node_network"]] = [{}, "Some time ago"]
 
+    othernet = "mainnet" if site_config["node_network"]=="testnet" else "testnet"
     try:
-        mainnetStats,date_logged = obtainNetworkStatistics(site_config["network_info_mainnet"]) #Date_logged is unix timestamp as float
+        networkStats,date_logged = obtainNetworkStatistics(site_config["network_info_"+othernet]) #Date_logged is unix timestamp as float
         #Convert Sat to BTC
-        mainnetStats["total_network_capacity"] = str(float(mainnetStats["total_network_capacity"]) / 10**8) +  " BTC"
-        mainnetStats["max_channel_size"] = str(float(mainnetStats["max_channel_size"]) / 10**8) +" BTC"
-        mainnetStats["avg_channel_size"] = str(mainnetStats["avg_channel_size"] / 10**8) +" BTC"
+        networkStats["total_network_capacity"] = str(float(networkStats["total_network_capacity"]) / 10**8) +  " BTC"
+        networkStats["max_channel_size"] = str(float(networkStats["max_channel_size"]) / 10**8) +" BTC"
+        networkStats["avg_channel_size"] = str(networkStats["avg_channel_size"] / 10**8) +" BTC"
 
-        freshness_mainnet = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        freshness = int( (int(datetime.now().strftime("%s")) - date_logged) /60) #Int nr of mins
+        netstats[othernet] = [networkStats, freshness]
     except Exception as e:
-        print("Error on mainnet stat fetch:\t"+ str(e))
-        mainnetStats={}
-        freshness_mainnet="some time ago"
+        print("Error on+ " + othernet + " stat fetch:\t"+ str(e))
+        netstats[othernet] = [{}, "Some time ago"]
 
-    return render(request, 'nodes/index.html', {"networkStats_testnet" : list(networkStats.items()), "networkStats_mainnet": list(mainnetStats.items()),"last_update_testnet" : freshness_testnet, "last_update_mainnet" : freshness_mainnet  })
+    return render(request, 'nodes/index.html', {"networkStats_testnet" : list(netstats["testnet"][0].items()), "networkStats_mainnet": list(netstats["mainnet"][0].items()),"last_update_testnet" : netstats["testnet"][1] , "last_update_mainnet" : netstats["mainnet"][1]  })
 
 
 def about(request):

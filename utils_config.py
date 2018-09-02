@@ -5,6 +5,8 @@ import codecs
 
 
 site_config = json.loads(codecs.open("/etc/django_config.txt", 'r').read())
+if(site_config["node_network"] != "mainnet" and site_config["node_network"] != "testnet"):
+    raise Exception("Invalid local network setting, set the string to 'mainnet' or 'testnet'")
 
 def fix_date_string(folderPath = os.getcwd()):
     for fileName in os.listdir(folderPath):
