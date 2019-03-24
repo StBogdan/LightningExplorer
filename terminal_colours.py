@@ -9,16 +9,17 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def termPrint(text, style):
     return style + str(text) + bcolors.ENDC
 
 
-def termDictPrint(dictionary, indent = 0):
-    dictString=""
-    for key,value in dictionary.items():
-            if isinstance(value, dict):
-                valueStr=termDictPrint(value,indent+1)
-            else:
-                valueStr=str(value)
-            dictString+="\n"+ '\t' * indent + termPrint(key,bcolors.WARNING) + ": " + valueStr
-    return dictString
+def termDictPrint(dictionary, indent=0):
+    dict_string = ""
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            valueStr = termDictPrint(value, indent + 1)
+        else:
+            valueStr = str(value)
+        dict_string += f"\n" + '\t' * indent + termPrint(key, bcolors.WARNING) + ": " + valueStr
+    return dict_string
