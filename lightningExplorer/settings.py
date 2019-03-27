@@ -24,7 +24,7 @@ with open('/etc/secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
 #TODO Learn to do this better
-from utils_config import *
+from _scripts.utils_config import *
 debug_setting = site_config["django_debug"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG =  debug_setting

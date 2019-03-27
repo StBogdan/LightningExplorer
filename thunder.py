@@ -10,20 +10,21 @@ import os
 import codecs
 import json
 import urllib.request
-from  terminal_colours import *
+from terminal_colours import *
 from pickleUtils import save_obj,load_obj
 import socket
 
+from _scripts.utils_config import *
 
-from utils_config import *
 def getIP():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
-    ip_adr=(s.getsockname()[0])
+    ip_adr = (s.getsockname()[0])
     s.close()
     return ip_adr
 
-#Setup
+
+# Setup
 # Due to updated ECDSA generated tls.cert we need to let gprc know that
 # we need to use that cipher suite otherwise there will be a handhsake
 # error when we communicate with the lnd rpc server.
@@ -62,13 +63,13 @@ def getInfo(stub,macaroon):
         network = "[Testnet]"
 
     descriptionStr = termPrint("Alias: ",bcolors.OKGREEN) + termPrint(response.alias, bcolors.BOLD) +"\t\t"+ termPrint("Pubkey: ",bcolors.OKGREEN) + str(response.identity_pubkey) + "\n"
-    statusStr= termPrint("Channels:",bcolors.OKGREEN) + str(response.num_active_channels) + "("+ str(response. num_pending_channels) + ")\t" + termPrint("Peers:",bcolors.OKGREEN) + str(response.num_peers) + "\t"+ termPrint("Height:", bcolors.OKGREEN) + str(response.block_height) + "\t"+ termPrint("Balance:", bcolors.OKGREEN )+ str(responseWallet.total_balance) + " ("+ str(responseWallet.confirmed_balance) + ":" + str(responseWallet.unconfirmed_balance) +") SAT\t" + termPrint(network,bcolors.OKGREEN)
+    statusStr= termPrint("Channels:", bcolors.OKGREEN) + str(response.num_active_channels) + "("+ str(response. num_pending_channels) + ")\t" + termPrint("Peers:",bcolors.OKGREEN) + str(response.num_peers) + "\t"+ termPrint("Height:", bcolors.OKGREEN) + str(response.block_height) + "\t"+ termPrint("Balance:", bcolors.OKGREEN )+ str(responseWallet.total_balance) + " ("+ str(responseWallet.confirmed_balance) + ":" + str(responseWallet.unconfirmed_balance) +") SAT\t" + termPrint(network,bcolors.OKGREEN)
 
     return descriptionStr + statusStr
 
 # https://api.lightning.community/#listpeers
 def getPeers(stub,macaroon):
-    responsePeers = stub.ListPeers(ln.ListPeersRequest(),metadata = [('macaroon',macaroon)])
+    responsePeers = stub.ListPeers(ln.ListPeersRequest(), metadata=[('macaroon', macaroon)])
     return responsePeers
 
 def getPeerInfo(stub,macaroon):
@@ -100,8 +101,8 @@ def getChannelString(chan):
     #     return "Could not get channel: "+ str(e)
 
 def getPubKeyName(pubkey):
-    #Get the node alias
-    #Uses the 1ml.com API
+    # Get the node alias
+    # Uses the 1ml.com API
     try:
         url = "https://1ml.com/testnet/node/" + pubkey + "/json"
         response = urllib.request.urlopen(url)
@@ -121,7 +122,7 @@ def getPubKeyInfo(pubkey):
         data = json.loads(response.read().decode('utf-8'))
         return data
     except Exception as e:
-        return {"alias": "UNKNOWN_ALIAS" ,"pub_key" : pubkey , "addresses": []}
+        return {"alias": "UNKNOWN_ALIAS", "pub_key": pubkey, "addresses": []}
 
 def getCurrentChannels(stub,macaroon):
     responseChannels = stub.ListChannels(ln.ListChannelsRequest(),metadata = [('macaroon',macaroon)])
@@ -164,9 +165,6 @@ def getPendingChannelStringPendClose(chan):
     return str(chan)
 def getPendingChannelStringPendForceClose(chan):
     return str(chan)
-
-
-
 
 def getNodeStats(stub,macaroon):
     return "TODO"
@@ -250,7 +248,7 @@ def getNodesWithIPs(networkGraph_nodes):
     return nodesWithIPs
 
 def getNodeURI(nodeInfo):
-    if(len(nodeInfo["addresses"]) <1):
+    if len(nodeInfo["addresses"]) < 1:
         print("ERROR: Node has no addresses")
         return ""
     else:

@@ -5,7 +5,7 @@ from random import shuffle
 
 import rpc_pb2 as ln
 import thunder
-import utils_databasePopulate as db_pop
+from _scripts import utils_databasePopulate as db_pop
 from terminal_colours import bcolors
 # Local files import
 from terminal_colours import termPrint

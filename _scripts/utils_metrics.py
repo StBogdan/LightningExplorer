@@ -2,16 +2,7 @@
 # Supposed to help display metrics on website
 # Bogdan Stoicescu (bs5017)
 
-import json
-import pickle
-import time
-import os
-import urllib.request
-from datetime import datetime
-import pickle
-import numpy as np
-
-from utils_config import *
+from _scripts.utils_config import *
 
 #Returns in order,
 # title, description, dataset_url, dataset_type, dataset_options,parents (if any)
