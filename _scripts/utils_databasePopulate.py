@@ -15,16 +15,17 @@ def get_data_files(full_data_path, one_per_day=0):
     files = []
     for day_dir in os.listdir(full_data_path):
         # print("In folder " + full_data_path+ os.sep + day_dir )
-        if not os.path.isdir(full_data_path + os.sep + day_dir):
+        day_dir_fpath = os.path.join(full_data_path, day_dir)
+        if not os.path.isdir(day_dir_fpath):
             continue  # Only look at directories
 
         if one_per_day:  # Then only look at the first 2 files (hopefully a .graph and .netinfo pair)
-            day_data = [x for x in os.listdir(full_data_path + os.sep + day_dir) if
+            day_data = [x for x in os.listdir(day_dir_fpath) if
                         x.endswith(".netinfo") or x.endswith(".graph")][0:2]
-            files += [full_data_path + os.sep + day_dir + os.sep + x for x in day_data if x.endswith(".graph")]
+            files += [day_dir_fpath + os.sep + x for x in day_data if x.endswith(".graph")]
         else:
-            day_data = os.listdir(full_data_path + os.sep + day_dir)
-            files += [full_data_path + os.sep + day_dir + os.sep + x for x in day_data if x.endswith(".graph")]
+            day_data = os.listdir(day_dir_fpath)
+            files += [day_dir_fpath + os.sep + x for x in day_data if x.endswith(".graph")]
 
     return files
 
@@ -145,8 +146,7 @@ def createDBentries(full_data_path, network, hourly=False):
     policy_entries = []
     data_folders = get_data_files(full_data_path)  # One per day
     index = 0
-    print(
-        "[DB Populate][" + network + "] Have to process: " + str(len(data_folders)) + " folders, hourly:" + str(hourly))
+    print(f"[DB Populate][{network}] Have to process: {len(data_folders)} folders, hourly: {hourly}")
     current_hour = -1
     current_day = -1
 
@@ -193,17 +193,16 @@ def createDBentries(full_data_path, network, hourly=False):
 
 
 def populate_db():
-    if (input("Are you sure you want to rebuild the database? (LOSE ALL DATA) [y/n] ") == "y"):
+    if input("Are you sure you want to rebuild the database? (LOSE ALL DATA) [y/n] ") == "y":
         print("Removing existing entries")
         print(Node.objects.all().delete())  # TODO REMOVE, ONLY USE FOR TESTING
         print(Channel.objects.all().delete())  # TODO REMOVE, ONLY USE FOR TESTING
 
-    hourly = True
-    if (input("Add all times (default is hourly)? [y/n] ") == "y"):
-        hourly = False
-    if (input("Add new entries? [y/n] ") == "y"):
-        createDBentries(data_location, "testnet", hourly)
-        createDBentries(data_location_mainnet, "mainnet", hourly)
+    hourlySetting = input("Add all times (default is hourly)? [y/n] ") != "y"
+
+    if input("Add new entries? [y/n] ") == "y":
+        createDBentries(data_location, "testnet", hourlySetting)
+        createDBentries(data_location_mainnet, "mainnet", hourlySetting)
 
 
 # populate_db()
