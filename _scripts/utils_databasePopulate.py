@@ -1,17 +1,28 @@
-import os, django
+import os
+import django
 import sys
+import _scripts.utils_config as config
+from datetime import datetime
+from nodes.models import *
+
+
+"""
+What: Take data from files, convert it, put it in database
+Why: Automate data loading
+"""
 
 # Django setup (run in the virtual environment)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lightningExplorer.settings")
 django.setup()
-from _scripts.utils_config import *
-
-data_location = site_config["lndmon_data_location"]
-data_location_mainnet = site_config["lndmon_data_location_mainnet"]
-from nodes.models import *
 
 
 def get_data_files(full_data_path, one_per_day=0):
+    """
+    Gets the data files from the given string full path
+    For testing, a one-datapoint-per-day flag can be set
+
+    Returns: list of fpath string to files with data
+    """
     files = []
     for day_dir in os.listdir(full_data_path):
         # print("In folder " + full_data_path+ os.sep + day_dir )
@@ -40,13 +51,13 @@ def get_node_capacity(nodeID, channel_dict):
     return [channels, capacity]
 
 
-def get_net_data(filePath):
-    fileName = filePath.split(os.sep)[-1]
+def get_net_data(file_fpath):
+    file_name = file_fpath.split(os.sep)[-1]
     try:
-        date = datetime.strptime(fileName.split(".")[0], "%Y-%m-%d-%H-%M-%S")
+        date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d-%H-%M-%S")
     except Exception as e:
-        date = datetime.strptime(fileName.split(".")[0], "%Y-%m-%d-%H:%M:%S")
-    netData = json.loads(open(filePath).read())
+        date = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d-%H:%M:%S")
+    netData = json.loads(open(file_fpath).read())
     return [date, netData["nodes"], netData["edges"]]
 
 
@@ -155,11 +166,11 @@ def createDBentries(full_data_path, network, hourly=False):
         try:
             if (hourly):  # Only go through this is hourly flag is set
                 summaryTime = datetime.strptime(file.split(os.sep)[-1].split(".")[0], "%Y-%m-%d-%H-%M-%S")
-                if (len(Node.objects.filter(date_logged=summaryTime)) > 0):
+                if len(Node.objects.filter(date_logged=summaryTime)) > 0:
                     print("[Data Update][" + network + "] Date already in database\t" + str(summaryTime))
                     continue
 
-                if (current_hour != summaryTime.hour or current_day != summaryTime.day):
+                if current_hour != summaryTime.hour or current_day != summaryTime.day:
                     print("[DB Populate][" + network + "][Hourly process] Process Hour: " + str(
                         summaryTime.hour) + " Day: " + str(summaryTime.day) + "compare to Hour:" + str(
                         current_hour) + " on Day:" + str(current_day))
@@ -171,7 +182,7 @@ def createDBentries(full_data_path, network, hourly=False):
                         current_hour) + " on " + str(current_day))
                     continue
             date, nodes, chans = get_net_data(file)
-            # print("Got file: " + file + "\twith " + str(len(nodes)) + " nodes\t"+str(len(chans)) + " channels")
+            # print(f"Got file: {file}\t with {len(nodes)} nodes\t{len(chans)} channels")
 
             node_extra_info = [get_node_capacity(node["pub_key"], chans) for node in nodes]
             nodes_entries, address_entries = createNodeEntries(nodes, date, [x for [x, y] in node_extra_info],
@@ -192,30 +203,27 @@ def createDBentries(full_data_path, network, hourly=False):
                 raise e
 
 
-def populate_db():
-    if input("Are you sure you want to rebuild the database? (LOSE ALL DATA) [y/n] ") == "y":
-        print("Removing existing entries")
-        print(Node.objects.all().delete())  # TODO REMOVE, ONLY USE FOR TESTING
-        print(Channel.objects.all().delete())  # TODO REMOVE, ONLY USE FOR TESTING
-
-    hourlySetting = input("Add all times (default is hourly)? [y/n] ") != "y"
-
-    if input("Add new entries? [y/n] ") == "y":
-        createDBentries(data_location, "testnet", hourlySetting)
-        createDBentries(data_location_mainnet, "mainnet", hourlySetting)
+def clear_db():
+    print("[DB Populate] Removing all data")
+    print(Node.objects.all().delete())
+    print(Channel.objects.all().delete())
 
 
-# populate_db()
-'''
-#For use in django shell
-pathScript ="/path/to/DataBasePopulate.py"
-exec(open(pathScript).read())
-
-scriptName = "DataBasePopulate.py"
-exec(open(scriptName).read()) #Yes, I know
-'''
-# data_update(getCurrentDate(timedelta(days=1)))
 if __name__ == "__main__":
+    """
+        Run on command line, takes info from data folder (config-given), puts it in Django-accessible db
+        arg1 network:
+            mainnet or testnet 
+            or unsafe_reset_db (clears the local db)
+        arg2 data frequency:
+            alldata for getting all data (otherwise hourly)
+    """
+
+    # Get env settings
+    site_config = config.get_site_config()
+    data_location = site_config["lndmon_data_location"]
+    data_location_mainnet = site_config["lndmon_data_location_mainnet"]
+
     if len(sys.argv) > 1:
         if len(sys.argv) > 2:
             hourly = (sys.argv[2] != "alldata")
@@ -231,9 +239,24 @@ if __name__ == "__main__":
             print("[DB Populate] Adding testnet data")
             createDBentries(data_location, "testnet", hourly)
         elif sys.argv[1] == "unsafe_reset_db":
-            print("[DB Populate] Removing all data")
-            print(Node.objects.all().delete())
-            print(Channel.objects.all().delete())
+            clear_db()
+        else:
+            print("[DB Populate] Unrecognised first parameter, please use one of mainnet|testnet|unsafe_reset_db")
     else:
-        print("[DB Populate] Adding all network data")
-        populate_db()
+        print("[DB Populate] Adding all network data (both networks)")
+        if input("Want to rebuild the database? (LOSE ALL CURRENT DATA) [y/n] ") == "y":
+            clear_db()
+        hourly_setting = input("Add all times?(default is hourly) [y/n]\t") != "y"
+        if input("Add new entries? [y/n] ") == "y":
+            createDBentries(data_location, "testnet", hourly_setting)
+            createDBentries(data_location_mainnet, "mainnet", hourly_setting)
+
+
+'''
+#For use in django shell
+pathScript ="/path/to/DataBasePopulate.py"
+exec(open(pathScript).read())
+
+scriptName = "DataBasePopulate.py"
+exec(open(scriptName).read()) #Yes, I know
+'''

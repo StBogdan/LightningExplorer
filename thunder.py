@@ -11,10 +11,13 @@ import codecs
 import json
 import urllib.request
 from terminal_colours import *
-from pickleUtils import save_obj,load_obj
+from pickleUtils import save_obj, load_obj
 import socket
 
-from _scripts.utils_config import *
+import _scripts.utils_config as config
+
+site_config = config.get_site_config()
+
 
 def getIP():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -29,6 +32,7 @@ def getIP():
 # we need to use that cipher suite otherwise there will be a handhsake
 # error when we communicate with the lnd rpc server.
 os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
+
 
 # Lnd cert is at ~/.lnd/tls.cert on Linux and
 # ~/Library/Application Support/Lnd/tls.cert on Mac
@@ -46,59 +50,82 @@ os.environ["GRPC_SSL_CIPHER_SUITES"] = 'HIGH+ECDSA'
 #     macaroon_bytes = f.read()
 #     macaroon = codecs.encode(macaroon_bytes, 'hex')
 
-def get_info_dict(stub,macaroon):
+def get_info_dict(stub, macaroon):
     # Retrieve and display the wallet balance
-    response = stub.GetInfo(ln.GetInfoRequest(),metadata = [('macaroon',macaroon)])
+    response = stub.GetInfo(ln.GetInfoRequest(), metadata=[('macaroon', macaroon)])
     # responseWallet = stub.WalletBalance(ln.WalletBalanceRequest(),metadata = [('macaroon',macaroon)])
 
     return response
 
-def getInfo(stub,macaroon):
+
+def getInfo(stub, macaroon):
     # Retrieve and display the wallet balance
-    response = stub.GetInfo(ln.GetInfoRequest(),metadata = [('macaroon',macaroon)])
-    responseWallet = stub.WalletBalance(ln.WalletBalanceRequest(),metadata = [('macaroon',macaroon)])
+    response = stub.GetInfo(ln.GetInfoRequest(), metadata=[('macaroon', macaroon)])
+    response_wallet = stub.WalletBalance(ln.WalletBalanceRequest(), metadata=[('macaroon', macaroon)])
 
     network = "[Mainnet]"
-    if( response.testnet):
+    if response.testnet:
         network = "[Testnet]"
 
-    descriptionStr = termPrint("Alias: ",bcolors.OKGREEN) + termPrint(response.alias, bcolors.BOLD) +"\t\t"+ termPrint("Pubkey: ",bcolors.OKGREEN) + str(response.identity_pubkey) + "\n"
-    statusStr= termPrint("Channels:", bcolors.OKGREEN) + str(response.num_active_channels) + "("+ str(response. num_pending_channels) + ")\t" + termPrint("Peers:",bcolors.OKGREEN) + str(response.num_peers) + "\t"+ termPrint("Height:", bcolors.OKGREEN) + str(response.block_height) + "\t"+ termPrint("Balance:", bcolors.OKGREEN )+ str(responseWallet.total_balance) + " ("+ str(responseWallet.confirmed_balance) + ":" + str(responseWallet.unconfirmed_balance) +") SAT\t" + termPrint(network,bcolors.OKGREEN)
+    descriptionStr = term_print("Alias: ", bcolors.OKGREEN) + term_print(response.alias,
+                                                                         bcolors.BOLD) + "\t\t" + term_print("Pubkey: ",
+                                                                                                             bcolors.OKGREEN) + str(
+        response.identity_pubkey) + "\n"
+    statusStr = term_print("Channels:", bcolors.OKGREEN) + str(response.num_active_channels) + "(" + str(
+        response.num_pending_channels) + ")\t" + term_print("Peers:", bcolors.OKGREEN) + str(
+        response.num_peers) + "\t" + term_print("Height:", bcolors.OKGREEN) + str(
+        response.block_height) + "\t" + term_print("Balance:", bcolors.OKGREEN) + str(
+        response_wallet.total_balance) + " (" + str(response_wallet.confirmed_balance) + ":" + str(
+        response_wallet.unconfirmed_balance) + ") SAT\t" + term_print(network, bcolors.OKGREEN)
 
     return descriptionStr + statusStr
 
+
 # https://api.lightning.community/#listpeers
-def getPeers(stub,macaroon):
+def getPeers(stub, macaroon):
     responsePeers = stub.ListPeers(ln.ListPeersRequest(), metadata=[('macaroon', macaroon)])
     return responsePeers
 
-def getPeerInfo(stub,macaroon):
-    responsePeers = getPeers(stub,macaroon)
+
+def getPeerInfo(stub, macaroon):
+    responsePeers = getPeers(stub, macaroon)
     peerStrings = "Currently connected to " + str(len(responsePeers.peers)) + " peers\n"
     for peer in responsePeers.peers:
-        peerStrings+= peer.pub_key + "\t" + peer.address + "\t" + termPrint("Traffic: ",bcolors.OKGREEN)  + str(peer.sat_sent) + ":" + str(peer.sat_recv) + " SAT\t\t"
-        peerStrings+="\n"
+        peerStrings += peer.pub_key + "\t" + peer.address + "\t" + term_print("Traffic: ", bcolors.OKGREEN) + str(
+            peer.sat_sent) + ":" + str(peer.sat_recv) + " SAT\t\t"
+        peerStrings += "\n"
 
     return peerStrings
 
-def getFeeReport(stub,macaroon):
-     response = stub.FeeReport(ln.FeeReportRequest(), metadata=[('macaroon', macaroon)])
-     return response
+
+def getFeeReport(stub, macaroon):
+    response = stub.FeeReport(ln.FeeReportRequest(), metadata=[('macaroon', macaroon)])
+    return response
+
 
 def getChannelString(chan):
-    activityState = termPrint("[INACTIVE]", bcolors.WARNING)
-    if(chan.active):
-        activityState = termPrint("[ACTIVE]", bcolors.OKGREEN)
+    activityState = term_print("[INACTIVE]", bcolors.WARNING)
+    if (chan.active):
+        activityState = term_print("[ACTIVE]", bcolors.OKGREEN)
     # try:
-    otherInfo =  getPubKeyInfo(chan.remote_pubkey)
-    otherInfoString =  termPrint("Pubkey: ", bcolors.OKGREEN) + str(otherInfo["pub_key"]) + termPrint("\tAddress(es): ", bcolors.OKGREEN)
+    otherInfo = getPubKeyInfo(chan.remote_pubkey)
+    otherInfoString = term_print("Pubkey: ", bcolors.OKGREEN) + str(otherInfo["pub_key"]) + term_print(
+        "\tAddress(es): ", bcolors.OKGREEN)
 
-    for singleAdr in otherInfo["addresses"] :
+    for singleAdr in otherInfo["addresses"]:
         otherInfoString += str(singleAdr["addr"]) + " "
 
-    return termPrint("ID: ", bcolors.OKGREEN) + termPrint(chan.chan_id, bcolors.BOLD) + " with "+ termPrint(getPubKeyName(chan.remote_pubkey),bcolors.BOLD) + "\n" + termPrint("Capacity: ", bcolors.OKGREEN) + str(chan.capacity) + " SAT\t" + termPrint("Balance: ", bcolors.OKGREEN) + str(chan.local_balance)+ ":"+ str(chan.remote_balance) +  " SAT\t" +  termPrint("Traffic: " , bcolors.OKGREEN)+ str(chan.total_satoshis_sent)+ ":"+ str(chan.total_satoshis_received) +  " SAT\t" + activityState +"\tUpdates: " + str(chan.num_updates) + "\n" + otherInfoString  + "\n" +  termPrint("ChanPoint: ", bcolors.OKGREEN) + str(chan.channel_point)
+    return term_print("ID: ", bcolors.OKGREEN) + term_print(chan.chan_id, bcolors.BOLD) + " with " + term_print(
+        getPubKeyName(chan.remote_pubkey), bcolors.BOLD) + "\n" + term_print("Capacity: ", bcolors.OKGREEN) + str(
+        chan.capacity) + " SAT\t" + term_print("Balance: ", bcolors.OKGREEN) + str(chan.local_balance) + ":" + str(
+        chan.remote_balance) + " SAT\t" + term_print("Traffic: ", bcolors.OKGREEN) + str(
+        chan.total_satoshis_sent) + ":" + str(
+        chan.total_satoshis_received) + " SAT\t" + activityState + "\tUpdates: " + str(
+        chan.num_updates) + "\n" + otherInfoString + "\n" + term_print("ChanPoint: ", bcolors.OKGREEN) + str(
+        chan.channel_point)
     # except Exception as e:
     #     return "Could not get channel: "+ str(e)
+
 
 def getPubKeyName(pubkey):
     # Get the node alias
@@ -114,8 +141,8 @@ def getPubKeyName(pubkey):
 
 
 def getPubKeyInfo(pubkey):
-    #Get the node alias
-    #Uses the 1ml.com API
+    # Get the node alias
+    # Uses the 1ml.com API
     try:
         url = "https://1ml.com/testnet/node/" + pubkey + "/json"
         response = urllib.request.urlopen(url)
@@ -124,31 +151,37 @@ def getPubKeyInfo(pubkey):
     except Exception as e:
         return {"alias": "UNKNOWN_ALIAS", "pub_key": pubkey, "addresses": []}
 
-def getCurrentChannels(stub,macaroon):
-    responseChannels = stub.ListChannels(ln.ListChannelsRequest(),metadata = [('macaroon',macaroon)])
+
+def getCurrentChannels(stub, macaroon):
+    responseChannels = stub.ListChannels(ln.ListChannelsRequest(), metadata=[('macaroon', macaroon)])
     return responseChannels.channels
 
-def getChannelStats(stub,macaroon):
-    chan = getCurrentChannels(stub,macaroon)
+
+def getChannelStats(stub, macaroon):
+    chan = getCurrentChannels(stub, macaroon)
     print("Displaying " + str(len(chan)) + " channels:")
     for chan in chan:
         print(getChannelString(chan))
         print("-------------------------------------------------------------------------------")
 
-def getPendingChannels(stub,macaroon):
-    response = stub.PendingChannels(ln.PendingChannelsRequest() ,metadata = [('macaroon',macaroon)])
+
+def getPendingChannels(stub, macaroon):
+    response = stub.PendingChannels(ln.PendingChannelsRequest(), metadata=[('macaroon', macaroon)])
     return response
-     # {
-     #     total_limbo_balance: <int64>,
-     #     pending_open_channels: <PendingOpenChannel>,
-     #     pending_closing_channels: <ClosedChannel>,
-     #     pending_force_closing_channels: <ForceClosedChannel>,
-     # }
+    # {
+    #     total_limbo_balance: <int64>,
+    #     pending_open_channels: <PendingOpenChannel>,
+    #     pending_closing_channels: <ClosedChannel>,
+    #     pending_force_closing_channels: <ForceClosedChannel>,
+    # }
 
-def getPendingChannelStats(stub,macaroon):
-    pending_chans = getPendingChannels(stub,macaroon)
 
-    print("Displaying " + str(len(pending_chans.pending_open_channels)) + " pending open\t" + str(len(pending_chans.pending_closing_channels))  + " pending close\t"  + str(len(pending_chans.pending_force_closing_channels)) + " pending force close " + " channels:")
+def getPendingChannelStats(stub, macaroon):
+    pending_chans = getPendingChannels(stub, macaroon)
+
+    print("Displaying " + str(len(pending_chans.pending_open_channels)) + " pending open\t" + str(
+        len(pending_chans.pending_closing_channels)) + " pending close\t" + str(
+        len(pending_chans.pending_force_closing_channels)) + " pending force close " + " channels:")
     for chan in pending_chans.pending_open_channels:
         print(getChannelStringPendOpen(chan))
         print("-------------------------------------------------------------------------------")
@@ -159,33 +192,41 @@ def getPendingChannelStats(stub,macaroon):
         print(getPendingChannelStringPendForceClose(chan))
         print("-------------------------------------------------------------------------------")
 
+
 def getChannelStringPendOpen(chan):
     return str(chan)
+
+
 def getPendingChannelStringPendClose(chan):
     return str(chan)
+
+
 def getPendingChannelStringPendForceClose(chan):
     return str(chan)
 
-def getNodeStats(stub,macaroon):
+
+def getNodeStats(stub, macaroon):
     return "TODO"
 
-def getNetworkStats(stub,macaroon,get_raw=False):
-    response = stub.DescribeGraph( ln.ChannelGraphRequest(),metadata = [('macaroon',macaroon)])
-    if(get_raw):
+
+def getNetworkStats(stub, macaroon, get_raw=False):
+    response = stub.DescribeGraph(ln.ChannelGraphRequest(), metadata=[('macaroon', macaroon)])
+    if (get_raw):
         return response
 
     # Output reponse to file
     outFile = open('latest.graph', 'w')
-    save_obj(response,"network_graph_data")
+    save_obj(response, "network_graph_data")
     outFile.write(str(response))
     print("Response object written to file")
 
-    return "Got "+ str(len(response.nodes)) + " noodes and " + str(len(response.edges))+ " channels"
+    return "Got " + str(len(response.nodes)) + " noodes and " + str(len(response.edges)) + " channels"
+
 
 def startServerConnection(serverConfigDict):
-    tls_cert_path=  serverConfigDict["tls_cert_path"]
-    macaroon_path=  serverConfigDict["macaroon_path"]
-    ip_port_adr=    serverConfigDict["ip_port_adr"]
+    tls_cert_path = serverConfigDict["tls_cert_path"]
+    macaroon_path = serverConfigDict["macaroon_path"]
+    ip_port_adr = serverConfigDict["ip_port_adr"]
 
     # print("Opening secure channel to server")
     cert = open(os.path.expanduser(tls_cert_path), 'rb').read()
@@ -198,58 +239,61 @@ def startServerConnection(serverConfigDict):
     channel = grpc.secure_channel(ip_port_adr, creds)
     stub = lnrpc.LightningStub(channel)
 
-    return [stub,macaroon]
+    return [stub, macaroon]
+
 
 def getServerConfigs():
-    #TODO Auto generate these based on the files in the folder
+    # TODO Auto generate these based on the files in the folder
     serverList = [
-            # {"Alias"      :"Local Ubuntu LND",
-            # "ip_port_adr"   :getIP()+":10009",
-            # "tls_cert_path" :'~/.lnd/tls.cert',
-            # "macaroon_path" : '~/.lnd/admin.macaroon'},
-            {"Alias"      :"Frankfurt-Connect",
-            "pubkey"       :  "034f2330f7fca3a3eef0fad20b0d2aab09bbb7c960bfb59e02cd7100d234634af4",
-            "ip_port_adr"   :"159.89.97.96:10009",
-            "tls_cert_path" :site_config["server_files"]+'/frank1/tls.cert',
-            "macaroon_path" : site_config["server_files"]+'/frank1/admin.macaroon'},
-            {"Alias"      :"London-Connect",
-            "pubkey"        : "02f82a1188bb4baa885de6c0d14276db056aa9da768de545c4fc7349379b5670cb",
-            "ip_port_adr"   :"159.89.11.83:10009",
-            "tls_cert_path" :site_config["server_files"]+'/london/tls.cert',
-            "macaroon_path" : site_config["server_files"]+'/london/admin.macaroon'},
-            {"Alias"      :"Lnd-San-Fran",
-            "pubkey"        :  "02b9804133643b78aa6f6221284ddef81785f88f861931a3e574353e3a642c0f9f",
-            "ip_port_adr"   :"159.89.133.236:10009",
-            "tls_cert_path" :site_config["server_files"]+'/sanfran1/tls.cert',
-            "macaroon_path" : site_config["server_files"]+'/sanfran1/admin.macaroon'}]
+        # {"Alias"      :"Local Ubuntu LND",
+        # "ip_port_adr"   :getIP()+":10009",
+        # "tls_cert_path" :'~/.lnd/tls.cert',
+        # "macaroon_path" : '~/.lnd/admin.macaroon'},
+        {"Alias": "Frankfurt-Connect",
+         "pubkey": "034f2330f7fca3a3eef0fad20b0d2aab09bbb7c960bfb59e02cd7100d234634af4",
+         "ip_port_adr": "159.89.97.96:10009",
+         "tls_cert_path": site_config["server_files"] + '/frank1/tls.cert',
+         "macaroon_path": site_config["server_files"] + '/frank1/admin.macaroon'},
+        {"Alias": "London-Connect",
+         "pubkey": "02f82a1188bb4baa885de6c0d14276db056aa9da768de545c4fc7349379b5670cb",
+         "ip_port_adr": "159.89.11.83:10009",
+         "tls_cert_path": site_config["server_files"] + '/london/tls.cert',
+         "macaroon_path": site_config["server_files"] + '/london/admin.macaroon'},
+        {"Alias": "Lnd-San-Fran",
+         "pubkey": "02b9804133643b78aa6f6221284ddef81785f88f861931a3e574353e3a642c0f9f",
+         "ip_port_adr": "159.89.133.236:10009",
+         "tls_cert_path": site_config["server_files"] + '/sanfran1/tls.cert',
+         "macaroon_path": site_config["server_files"] + '/sanfran1/admin.macaroon'}]
     return serverList
+
 
 def getServerChoice(currentChoice):
     serverChoice = int(currentChoice)
-    configSets= getServerConfigs()
+    configSets = getServerConfigs()
 
-    i=0
+    i = 0
     for config in configSets:
         print("[" + str(i) + "] " + config["Alias"] + "\t\t" + config["ip_port_adr"])
-        i+=1
+        i += 1
 
-    serverChoice = int(input("Select config set of " + str(len(configSets)) +" available: "))
-    while(serverChoice <0 or serverChoice >= len(configSets)):
+    serverChoice = int(input("Select config set of " + str(len(configSets)) + " available: "))
+    while (serverChoice < 0 or serverChoice >= len(configSets)):
         print("Invalid option, please type in a number")
-        serverChoice =int(input("Select config set of " + str(len(configSets)) +" available: "))
+        serverChoice = int(input("Select config set of " + str(len(configSets)) + " available: "))
 
     return serverChoice
 
 
 def getNodesWithIPs(networkGraph_nodes):
-    nodesWithIPs = [node for node in networkGraph_nodes if  len(node["addresses"]) > 0 ]
+    nodesWithIPs = [node for node in networkGraph_nodes if len(node["addresses"]) > 0]
     # node.pub_key == "023b14be2d7a3fc2b24eb14b25d44afc41cb8d0a6e01067da36ea3299e2f9bfe70"] #Testing with own node
     print("Counted notes with ip addresses: " + str(len(nodesWithIPs)))
     return nodesWithIPs
+
 
 def getNodeURI(nodeInfo):
     if len(nodeInfo["addresses"]) < 1:
         print("ERROR: Node has no addresses")
         return ""
     else:
-        return nodeInfo["pub_key"]+"@"+nodeInfo["addresses"][0]["addr"]
+        return nodeInfo["pub_key"] + "@" + nodeInfo["addresses"][0]["addr"]
