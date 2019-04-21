@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import _scripts.utils_config as config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,14 +21,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open('/etc/secret_key.txt') as f:
-    SECRET_KEY = f.read().strip()
+SECRET_KEY = os.environ["LNDMON_django_secret_key"]
 
-#TODO Learn to do this better
-from _scripts.utils_config import *
-debug_setting = site_config["django_debug"]
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  debug_setting
+DEBUG = config.get_site_config()["django_debug"]
 
 ALLOWED_HOSTS = [".lndmon.com", "127.0.0.1", "localhost"]
 
@@ -87,16 +84,29 @@ WSGI_APPLICATION = 'lightningExplorer.wsgi.application'
 #  }
 
 #Production
-db_user = open('/etc/django_user.txt').read().strip()
-db_pass = open('/etc/django_pass.txt').read().strip()
+db_user = os.environ["LNDMON_django_user"]
+db_pass = os.environ["LNDMON_django_pass"]
+
+# For localhost
+# DATABASES = {
+#       'default': {
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'NAME': 'lightningexplorer',
+#        'USER':     db_user,
+#        'PASSWORD': db_pass,
+#        'HOST': 'localhost',
+#        'PORT': '',}
+# }
+
+# For using a docker container of Postgres
 DATABASES = {
-      'default': {
-       'ENGINE': 'django.db.backends.postgresql_psycopg2',
-       'NAME': 'lightningexplorer',
-       'USER':     db_user,
-       'PASSWORD': db_pass,
-       'HOST': 'localhost',
-       'PORT': '',}
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'localhost',
+        'PORT': 5432,
+    }
 }
 
 

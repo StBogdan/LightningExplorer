@@ -2,6 +2,8 @@
 Found in `_scripts`, they do the heavy lifting.
 - **utils_config.py**
   - Handles configuration
+  - Location of config file taken from env var "lndmon_config_location"
+  - Example given in `django_config.txt`
 - **utils_databasePopulate.py**
   - Handles data from files to database
 - **utils_db_upkeep.py**

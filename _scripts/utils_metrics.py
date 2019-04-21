@@ -1,13 +1,16 @@
-from _scripts.utils_config import *
+import _scripts.utils_config as config
 from datetime import datetime
+import json
 # Returns in order,
 # title, description, dataset_url, dataset_type, dataset_options,parents (if any)
-from _scripts.utils_db_upkeep import site_config
 
 """
 What:  Helper and generator for all metrics
 Why: Supposed to help display metrics on website (create the images)
 """
+
+site_config = config.get_site_config()
+
 
 def get_data_location(network):
     data_location = {"testnet": site_config["lndmon_data_location"],

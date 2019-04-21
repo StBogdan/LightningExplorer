@@ -9,7 +9,7 @@ What: Gets the config for the given site, from the file django_config
 Why: Middleware for configuration, if we're going to be putting this is docker/kubernetes/container magic
 """
 def get_site_config():
-    site_config = json.loads(codecs.open("/etc/django_config.txt", 'r').read())
+    site_config = json.loads(codecs.open(os.environ["LNDMON_django_config"], 'r').read())
     if site_config["node_network"] != "mainnet" and site_config["node_network"] != "testnet":
         raise Exception("Invalid local network setting, set the string to 'mainnet' or 'testnet'")
     return site_config
